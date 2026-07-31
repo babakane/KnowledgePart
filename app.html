@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KnowledgePart - AI-Powered Online Chatbot with Code Analysis">
+    <meta name="theme-color" content="#4f46e5">
+    <title>KnowledgePart - AI Chatbot & Code Assistant</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --accent: #7c3aed;
+            --bg: #f8fafc;
+            --bg2: #ffffff;
+            --bg3: #f1f5f9;
+            --text: #0f172a;
+            --text2: #334155;
+            --text3: #64748b;
+            --border: #cbd5e1;
+            --success: #059669;
+            --error: #dc2626;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--text2);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--bg);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+        }
+
+        .status-dot.active {
+            background: var(--success);
+        }
+
+        /* MAIN CONTENT */
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin: 16px 0 8px 0;
+            letter-spacing: 1px;
+        }
+
+        .api-section {
+            margin-bottom: 16px;
+        }
+
+        .api-section label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text2);
+        }
+
+        .api-section input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 8px;
+        }
+
+        .api-section input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fafbff;
+        }
+
+        .model-selector {
+            margin-top: 12px;
+        }
+
+        .model-option {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            background: var(--bg3);
+            color: var(--text2);
+            transition: all 0.2s;
+        }
+
+        .model-option:hover {
+            border-color: var(--primary);
+            background: var(--bg);
+        }
+
+        .model-option.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* CHAT AREA */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: var(--primary);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+        }
+
+        .message.ai .message-bubble {
+            background: var(--bg3);
+            color: var(--text);
+            border-radius: 12px 12px 12px 2px;
+        }
+
+        .message.ai .message-bubble code {
+            background: rgba(79, 70, 229, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text3);
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text3);
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1); }
+        }
+
+        /* INPUT AREA */
+        .chat-input-area {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+
+        .input-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input-toolbar button {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .input-toolbar button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        #chatInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: none;
+            max-height: 120px;
+            min-height: 44px;
+            line-height: 1.4;
+            color: var(--text);
+        }
+
+        #chatInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fafbff;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text3);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 200px;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            header {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo"><span>Knowledge</span>Part</div>
+            <div class="header-controls">
+                <div class="status-indicator">
+                    <span>Status:</span>
+                    <div class="status-dot active"></div>
+                    <span id="statusText">Ready</span>
+                </div>
+                <button class="btn" onclick="clearChat()">Clear Chat</button>
+                <a href="docs/" class="btn" target="_blank">Help</a>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <div class="sidebar-header">⚙️ Settings</div>
+                <div class="sidebar-content">
+                    <!-- MODEL SELECTION -->
+                    <div class="section-title">AI Model</div>
+                    <div class="model-selector">
+                        <div class="model-option active" data-model="sandbox" onclick="selectModel('sandbox')">
+                            🟢 Offline Sandbox (Free)
+                        </div>
+                        <div class="model-option" data-model="gemini-flash" onclick="selectModel('gemini-flash')">
+                            ✨ Gemini Flash (API)
+                        </div>
+                        <div class="model-option" data-model="gemini-pro" onclick="selectModel('gemini-pro')">
+                            ⭐ Gemini Pro (API)
+                        </div>
+                    </div>
+
+                    <!-- API KEY SECTION -->
+                    <div class="api-section" id="apiSection" style="display: none;">
+                        <label>Google Gemini API Key</label>
+                        <input 
+                            type="password" 
+                            id="apiKey" 
+                            placeholder="AIzaSy..." 
+                            onchange="saveApiKey()"
+                        >
+                        <small style="color: var(--text3); display: block;">
+                            Get free key at <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary);">aistudio.google.com</a>
+                        </small>
+                    </div>
+
+                    <!-- QUICK ACTIONS -->
+                    <div class="section-title">Quick Actions</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Explain this code')">
+                            📖 Explain Code
+                        </button>
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Find and fix bugs')">
+                            🐛 Fix Bugs
+                        </button>
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Refactor for better code')">
+                            ⚡ Refactor
+                        </button>
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Write unit tests')">
+                            🧪 Generate Tests
+                        </button>
+                    </div>
+
+                    <!-- INFO -->
+                    <div class="section-title" style="margin-top: 32px;">About</div>
+                    <p style="font-size: 12px; color: var(--text3); line-height: 1.6;">
+                        KnowledgePart is an AI-powered chatbot designed to help developers write better code faster.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CHAT AREA -->
+            <div class="chat-area">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👋</div>
+                        <h2 style="font-size: 18px; margin-bottom: 8px;">Welcome to KnowledgePart</h2>
+                        <p style="font-size: 13px;">Start chatting with AI to analyze code, learn new concepts, or get instant assistance.</p>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="input-toolbar">
+                        <button onclick="insertPrompt('Hello, how can you help?')">💬 Say Hi</button>
+                        <button onclick="insertPrompt('What can you do?')">🤔 About Me</button>
+                        <button onclick="insertPrompt('JavaScript best practices')">💡 Tips & Tricks</button>
+                    </div>
+                    <div class="input-row">
+                        <textarea 
+                            id="chatInput" 
+                            placeholder="Ask anything... (Shift+Enter for new line)" 
+                            onkeydown="handleKeydown(event)"
+                            oninput="autoResizeInput()"
+                        ></textarea>
+                        <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                            ➤
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════════════════════════════
+        // STATE MANAGEMENT
+        // ══════════════════════════════════════════════════════════════════════
+        const state = {
+            messages: [],
+            currentModel: 'sandbox',
+            apiKey: localStorage.getItem('knowledge_api_key') || '',
+            isLoading: false
+        };
+
+        // ══════════════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ══════════════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiSection = document.getElementById('apiSection');
+            const apiKeyInput = document.getElementById('apiKey');
+            
+            if (state.apiKey) {
+                apiKeyInput.value = state.apiKey;
+            }
+            
+            // Show API section only for Gemini models
+            updateApiVisibility();
+            addWelcomeMessage();
+        });
+
+        // ══════════════════════════════════════════════════════════════════════
+        // MODEL SELECTION
+        // ══════════════════════════════════════════════════════════════════════
+        function selectModel(model) {
+            state.currentModel = model;
+            document.querySelectorAll('.model-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`[data-model="${model}"]`).classList.add('active');
+            updateApiVisibility();
+            addSystemMessage(`Switched to ${getModelName(model)}`);
+        }
+
+        function updateApiVisibility() {
+            const apiSection = document.getElementById('apiSection');
+            apiSection.style.display = state.currentModel === 'sandbox' ? 'none' : 'block';
+        }
+
+        function getModelName(model) {
+            const names = {
+                'sandbox': '🟢 Offline Sandbox',
+                'gemini-flash': '✨ Gemini 2.5 Flash',
+                'gemini-pro': '⭐ Gemini 2.5 Pro'
+            };
+            return names[model] || model;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // API KEY MANAGEMENT
+        // ══════════════════════════════════════════════════════════════════════
+        function saveApiKey() {
+            const apiKeyInput = document.getElementById('apiKey');
+            state.apiKey = apiKeyInput.value;
+            localStorage.setItem('knowledge_api_key', state.apiKey);
+            addSystemMessage('✓ API key saved securely');
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // MESSAGE HANDLING
+        // ══════════════════════════════════════════════════════════════════════
+        function addMessage(text, isUser = false) {
+            const message = {
+                text,
+                isUser,
+                timestamp: new Date()
+            };
+            state.messages.push(message);
+            renderMessage(message);
+        }
+
+        function addSystemMessage(text) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message ai';
+            messageEl.innerHTML = `<div class="message-bubble" style="background: #e0e7ff; color: #4338ca; font-size: 12px;">ℹ️ ${text}</div>`;
+            document.getElementById('chatMessages').appendChild(messageEl);
+            scrollToBottom();
+        }
+
+        function addWelcomeMessage() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            addMessage('👋 Hello! I\'m KnowledgePart, your AI coding assistant. I can help you:\n\n• Explain code and concepts\n• Find and fix bugs\n• Refactor and improve code\n• Generate documentation\n• Write unit tests\n• Answer programming questions\n\nHow can I help you today?', false);
+        }
+
+        function renderMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${message.isUser ? 'user' : 'ai'}`;
+            
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = 'message-bubble';
+            bubbleEl.textContent = message.text;
+            
+            messageEl.appendChild(bubbleEl);
+            chatMessages.appendChild(messageEl);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            setTimeout(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 0);
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // MESSAGE SENDING
+        // ══════════════════════════════════════════════════════════════════════
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || state.isLoading) return;
+            
+            // Add user message
+            addMessage(message, true);
+            input.value = '';
+            autoResizeInput();
+            
+            // Show typing indicator
+            state.isLoading = true;
+            const typingEl = document.createElement('div');
+            typingEl.className = 'message ai';
+            typingEl.innerHTML = `
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('chatMessages').appendChild(typingEl);
+            scrollToBottom();
+            
+            // Get response
+            const response = await getResponse(message);
+            
+            // Remove typing indicator
+            typingEl.remove();
+            state.isLoading = false;
+            
+            // Add response
+            addMessage(response, false);
+        }
+
+        async function getResponse(message) {
+            const lower = message.toLowerCase();
+            
+            // Gemini API
+            if (state.currentModel !== 'sandbox' && state.apiKey) {
+                try {
+                    return await getGeminiResponse(message);
+                } catch (error) {
+                    return `⚠️ API Error: ${error.message}\n\nFalling back to Offline Mode...`;
+                }
+            }
+            
+            // Offline Sandbox
+            return getOfflineResponse(message);
+        }
+
+        async function getGeminiResponse(message) {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${state.currentModel}:generateContent?key=${state.apiKey}`;
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: message }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 1024
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('API request failed');
+            }
+            
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+        }
+
+        function getOfflineResponse(message) {
+            const lower = message.toLowerCase();
+            
+            const responses = {
+                'hello|hi|hey': '👋 Hello! I\'m KnowledgePart. How can I assist you with coding today?',
+                'what|who|about|do': `I'm an AI-powered chatbot designed to help developers:\n\n💻 Code Analysis\n📖 Explanations\n🐛 Bug Fixes\n⚡ Refactoring\n🧪 Test Generation\n📝 Documentation\n\nTry asking me about code or programming!`,
+                'javascript|js|typescript|ts': `JavaScript is a versatile language for web and Node.js development. Key features:\n\n✅ ES6+ features (arrow functions, destructuring, async/await)\n✅ Flexible scoping and prototypes\n✅ Rich ecosystem (npm)\n\nWhat specific JavaScript topic interests you?`,
+                'python|py': `Python excels in data science, automation, and web development:\n\n✅ Clean, readable syntax\n✅ Powerful libraries (NumPy, Pandas, Django)\n✅ Great for beginners and experts\n\nInterested in a specific Python topic?`,
+                'best practices|tips|tricks': `🎯 Code Best Practices:\n\n1. Write clean, readable code\n2. Use meaningful variable names\n3. Keep functions small and focused\n4. Write tests for critical code\n5. Use version control\n6. Document your code\n7. Review code with team members\n\nWhat would you like to know more about?`,
+                'help|stuck|error': `Don't worry! I can help with:\n\n🔍 Debugging errors\n📚 Explaining concepts\n💡 Suggesting solutions\n🔧 Refactoring code\n\nShare what's bothering you!`,
+                'thank|thanks|thank you': `You're welcome! Happy to help. What else can I do for you? 😊`,
+                'bye|goodbye|exit': `Goodbye! Feel free to come back anytime. Happy coding! 👋`
+            };
+            
+            for (const [keywords, response] of Object.entries(responses)) {
+                const keywordList = keywords.split('|');
+                if (keywordList.some(kw => lower.includes(kw))) {
+                    return response;
+                }
+            }
+            
+            return `I'm in offline sandbox mode. To get AI-powered responses, please:\n\n1. Get a free API key from aistudio.google.com\n2. Paste it in the API Key field\n3. Select a Gemini model\n\nFor now, I can help with general programming questions!`;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // UI HELPERS
+        // ══════════════════════════════════════════════════════════════════════
+        function insertPrompt(prompt) {
+            const input = document.getElementById('chatInput');
+            input.value = prompt;
+            autoResizeInput();
+            input.focus();
+        }
+
+        function handleKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResizeInput() {
+            const input = document.getElementById('chatInput');
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        }
+
+        function clearChat() {
+            if (confirm('Clear all messages?')) {
+                state.messages = [];
+                addWelcomeMessage();
+            }
+        }
+    </script>
+</body>
+</html>
