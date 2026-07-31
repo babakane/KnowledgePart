@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KnowledgePart - AI-Powered Online Chatbot. Advanced code analysis, AI conversations, and intelligent development tools.">
+    <meta name="theme-color" content="#4f46e5">
+    <meta property="og:title" content="KnowledgePart - AI-Powered Chatbot">
+    <meta property="og:description" content="An intelligent online chatbot with code analysis, AI conversations, and developer tools.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://babakane.github.io/KnowledgePart/">
+    
+    <title>KnowledgePart - AI-Powered Online Chatbot</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --accent: #7c3aed;
+            --green: #059669;
+            --red: #dc2626;
+            --amber: #d97706;
+            --bg: #f8fafc;
+            --bg2: #f1f5f9;
+            --bg3: #e2e8f0;
+            --text: #0f172a;
+            --text2: #334155;
+            --text3: #64748b;
+            --border: #cbd5e1;
+            --white: #ffffff;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            font-family: 'Syne', sans-serif;
+            color: var(--text);
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        nav a {
+            margin-left: 32px;
+            color: var(--text2);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-secondary {
+            background: var(--bg2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg3);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 80px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
+        .hero-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            font-family: 'Syne', sans-serif;
+            color: var(--text);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text2);
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 64px;
+            flex-wrap: wrap;
+        }
+
+        .demo-image {
+            margin-top: 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .demo-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* FEATURES SECTION */
+        .features {
+            padding: 80px 20px;
+            background: var(--white);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 40px;
+            font-weight: 800;
+            font-family: 'Syne', sans-serif;
+            text-align: center;
+            margin-bottom: 60px;
+            color: var(--text);
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            padding: 32px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text2);
+            line-height: 1.6;
+        }
+
+        /* HIGHLIGHT SECTION */
+        .highlight {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: var(--white);
+        }
+
+        .highlight-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .highlight-content h2 {
+            font-size: 42px;
+            font-weight: 800;
+            font-family: 'Syne', sans-serif;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .highlight-content p {
+            font-size: 16px;
+            margin-bottom: 24px;
+            opacity: 0.95;
+            line-height: 1.8;
+        }
+
+        .highlight-list {
+            list-style: none;
+        }
+
+        .highlight-list li {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        .highlight-list li:before {
+            content: "✓";
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* PRICING SECTION */
+        .pricing {
+            padding: 80px 20px;
+            background: var(--white);
+        }
+
+        .pricing-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .pricing-card {
+            padding: 40px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pricing-card.popular {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            transform: scale(1.05);
+        }
+
+        .popular-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .pricing-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .pricing-desc {
+            font-size: 14px;
+            color: var(--text2);
+            margin-bottom: 24px;
+        }
+
+        .pricing-price {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: var(--text);
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 32px;
+        }
+
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text2);
+        }
+
+        /* CTA SECTION */
+        .cta {
+            padding: 80px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--white);
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 42px;
+            font-weight: 800;
+            font-family: 'Syne', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 16px;
+            margin-bottom: 32px;
+            opacity: 0.9;
+            line-height: 1.8;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            padding: 40px 20px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .footer-section a {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text3);
+            font-size: 14px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 16px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .highlight-container {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.popular {
+                transform: scale(1);
+            }
+
+            .cta h2 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="header-container">
+            <div class="logo"><span>Knowledge</span>Part</div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com/babakane/KnowledgePart" class="btn btn-primary" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1>AI-Powered <span>Online Chatbot</span></h1>
+            <p class="hero-subtitle">Write better code with intelligent AI assistance. Analyze, explain, fix, and refactor code instantly with KnowledgePart.</p>
+            <div class="hero-cta">
+                <a href="../index.html" class="btn btn-primary">Launch App</a>
+                <a href="https://github.com/babakane/KnowledgePart" class="btn btn-secondary" target="_blank">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <h2 class="section-title">Powerful <span>Features</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>AI Conversations</h3>
+                    <p>Real-time chat with Google Gemini models. Get instant answers, explanations, and code suggestions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Code Analysis</h3>
+                    <p>Smart code review, bug detection, and automated fixes with AI-powered analysis.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Auto Documentation</h3>
+                    <p>Generate comprehensive JSDoc comments and docstrings automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Code Refactoring</h3>
+                    <p>Improve code quality, readability, and performance with intelligent refactoring suggestions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧪</div>
+                    <h3>Test Generation</h3>
+                    <p>Automatically create unit tests for your code with proper test coverage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Privacy First</h3>
+                    <p>Your code stays private. Optional API key storage. Works offline with sandbox AI.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>GitHub Integration</h3>
+                    <p>Load repos, view files, commit changes directly from the editor.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Modern UI</h3>
+                    <p>Clean, distraction-free interface optimized for developers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>No installation needed. Works in any modern browser instantly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HIGHLIGHT SECTION -->
+    <section class="highlight">
+        <div class="highlight-container">
+            <div>
+                <h2>Everything you need to write better code</h2>
+                <p>KnowledgePart combines the power of AI with developer-friendly tools to help you write, understand, and improve code faster than ever.</p>
+                <ul class="highlight-list">
+                    <li>Multi-model AI support (Gemini Flash, Pro, Sandbox)</li>
+                    <li>Full-featured code editor with syntax highlighting</li>
+                    <li>GitHub repository integration</li>
+                    <li>One-click code formatting and optimization</li>
+                    <li>Real-time diff viewer</li>
+                    <li>No setup required - just open and code</li>
+                </ul>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 80px;">🚀</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section class="pricing" id="pricing">
+        <div class="pricing-container">
+            <h2 class="section-title">Simple <span>Pricing</span></h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Sandbox (Free)</h3>
+                    <div class="pricing-desc">Perfect for getting started</div>
+                    <div class="pricing-price">$0</div>
+                    <ul class="pricing-features">
+                        <li>✓ Offline AI assistant</li>
+                        <li>✓ Full code editor</li>
+                        <li>✓ Code analysis</li>
+                        <li>✓ Unlimited usage</li>
+                        <li>✗ Gemini models</li>
+                    </ul>
+                    <button class="btn btn-secondary">Get Started</button>
+                </div>
+                <div class="pricing-card popular">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3 class="pricing-title">Gemini API</h3>
+                    <div class="pricing-desc">Powered by Google Gemini</div>
+                    <div class="pricing-price">Pay as you go</div>
+                    <ul class="pricing-features">
+                        <li>✓ All Sandbox features</li>
+                        <li>✓ Gemini Flash model</li>
+                        <li>✓ Gemini Pro (advanced)</li>
+                        <li>✓ Free trial available</li>
+                        <li>✓ Enterprise support</li>
+                    </ul>
+                    <a href="https://aistudio.google.com" class="btn btn-primary" target="_blank">Get API Key</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta">
+        <div class="cta-container">
+            <h2>Ready to write smarter code?</h2>
+            <p>Start using KnowledgePart today. No credit card required for sandbox mode.</p>
+            <a href="../index.html" class="btn btn-primary">Launch the App Now</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Product</h3>
+                <a href="../index.html">Launch App</a>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="https://github.com/babakane/KnowledgePart/blob/main/README.md" target="_blank">Documentation</a>
+            </div>
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <a href="https://github.com/babakane/KnowledgePart" target="_blank">GitHub Repository</a>
+                <a href="https://aistudio.google.com" target="_blank">Gemini API</a>
+                <a href="https://github.com/babakane" target="_blank">Developer</a>
+            </div>
+            <div class="footer-section">
+                <h3>Community</h3>
+                <a href="https://github.com/babakane/KnowledgePart/issues" target="_blank">Report Issues</a>
+                <a href="https://github.com/babakane/KnowledgePart/discussions" target="_blank">Discussions</a>
+                <a href="https://github.com/babakane/KnowledgePart/pulls" target="_blank">Contribute</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 KnowledgePart. Built with ❤️ by <a href="https://github.com/babakane" style="color: var(--primary); text-decoration: none;">@babakane</a></p>
+        </div>
+    </footer>
+</body>
+</html>
