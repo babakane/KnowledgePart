@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
         * {
@@ -266,18 +267,32 @@
         }
 
         .message-bubble {
-            max-width: 70%;
+            max-width: 80%;
             padding: 12px 16px;
             border-radius: 12px;
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.6;
             word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message-bubble p {
+            margin-bottom: 8px;
+        }
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-bubble ul, .message-bubble ol {
+            margin-left: 20px;
+            margin-bottom: 8px;
         }
 
         .message.user .message-bubble {
             background: var(--primary);
             color: white;
             border-radius: 12px 12px 2px 12px;
+            white-space: pre-wrap;
         }
 
         .message.ai .message-bubble {
@@ -286,13 +301,31 @@
             border-radius: 12px 12px 12px 2px;
         }
 
-        .message.ai .message-bubble code {
-            background: rgba(79, 70, 229, 0.1);
-            padding: 2px 6px;
-            border-radius: 3px;
+        .message-bubble pre {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
+            white-space: pre;
+        }
+
+        .message-bubble code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(79, 70, 229, 0.1);
             color: var(--primary);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .message-bubble pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
         }
 
         .empty-state {
@@ -479,11 +512,14 @@
                         <div class="model-option active" data-model="sandbox" onclick="selectModel('sandbox')">
                             🟢 Offline Sandbox (Free)
                         </div>
-                        <div class="model-option" data-model="gemini-flash" onclick="selectModel('gemini-flash')">
-                            ✨ Gemini Flash (API)
+                        <div class="model-option" data-model="gemini-1.5-flash" onclick="selectModel('gemini-1.5-flash')">
+                            ✨ Gemini 1.5 Flash (Fast)
                         </div>
-                        <div class="model-option" data-model="gemini-pro" onclick="selectModel('gemini-pro')">
-                            ⭐ Gemini Pro (API)
+                        <div class="model-option" data-model="gemini-2.0-flash" onclick="selectModel('gemini-2.0-flash')">
+                            🚀 Gemini 2.0 Flash (Latest)
+                        </div>
+                        <div class="model-option" data-model="gemini-1.5-pro" onclick="selectModel('gemini-1.5-pro')">
+                            ⭐ Gemini 1.5 Pro (Advanced)
                         </div>
                     </div>
 
@@ -504,16 +540,16 @@
                     <!-- QUICK ACTIONS -->
                     <div class="section-title">Quick Actions</div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Explain this code')">
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Explain this code:\n\nfunction add(a, b) {\n  return a + b;\n}')">
                             📖 Explain Code
                         </button>
-                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Find and fix bugs')">
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Find and fix bugs in this snippet:\n\nconst total = items.map(i => i.price);')">
                             🐛 Fix Bugs
                         </button>
-                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Refactor for better code')">
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Refactor for better performance:\n\nfor (let i = 0; i < arr.length; i++) { ... }')">
                             ⚡ Refactor
                         </button>
-                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Write unit tests')">
+                        <button class="btn" style="width: 100%; justify-content: flex-start;" onclick="insertPrompt('Write unit tests for a login validator function.')">
                             🧪 Generate Tests
                         </button>
                     </div>
@@ -573,14 +609,12 @@
         // INITIALIZATION
         // ══════════════════════════════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded', () => {
-            const apiSection = document.getElementById('apiSection');
             const apiKeyInput = document.getElementById('apiKey');
             
             if (state.apiKey) {
                 apiKeyInput.value = state.apiKey;
             }
             
-            // Show API section only for Gemini models
             updateApiVisibility();
             addWelcomeMessage();
         });
@@ -593,21 +627,26 @@
             document.querySelectorAll('.model-option').forEach(el => {
                 el.classList.remove('active');
             });
-            document.querySelector(`[data-model="${model}"]`).classList.add('active');
+            const targetEl = document.querySelector(`[data-model="${model}"]`);
+            if (targetEl) targetEl.classList.add('active');
+            
             updateApiVisibility();
-            addSystemMessage(`Switched to ${getModelName(model)}`);
+            addSystemMessage(`Switched model to: ${getModelName(model)}`);
         }
 
         function updateApiVisibility() {
             const apiSection = document.getElementById('apiSection');
-            apiSection.style.display = state.currentModel === 'sandbox' ? 'none' : 'block';
+            if (apiSection) {
+                apiSection.style.display = state.currentModel === 'sandbox' ? 'none' : 'block';
+            }
         }
 
         function getModelName(model) {
             const names = {
                 'sandbox': '🟢 Offline Sandbox',
-                'gemini-flash': '✨ Gemini 2.5 Flash',
-                'gemini-pro': '⭐ Gemini 2.5 Pro'
+                'gemini-1.5-flash': '✨ Gemini 1.5 Flash',
+                'gemini-2.0-flash': '🚀 Gemini 2.0 Flash',
+                'gemini-1.5-pro': '⭐ Gemini 1.5 Pro'
             };
             return names[model] || model;
         }
@@ -617,13 +656,13 @@
         // ══════════════════════════════════════════════════════════════════════
         function saveApiKey() {
             const apiKeyInput = document.getElementById('apiKey');
-            state.apiKey = apiKeyInput.value;
+            state.apiKey = apiKeyInput.value.trim();
             localStorage.setItem('knowledge_api_key', state.apiKey);
-            addSystemMessage('✓ API key saved securely');
+            addSystemMessage('✓ Gemini API key saved securely in browser storage');
         }
 
         // ══════════════════════════════════════════════════════════════════════
-        // MESSAGE HANDLING
+        // MESSAGE HANDLING & RENDERING
         // ══════════════════════════════════════════════════════════════════════
         function addMessage(text, isUser = false) {
             const message = {
@@ -638,7 +677,7 @@
         function addSystemMessage(text) {
             const messageEl = document.createElement('div');
             messageEl.className = 'message ai';
-            messageEl.innerHTML = `<div class="message-bubble" style="background: #e0e7ff; color: #4338ca; font-size: 12px;">ℹ️ ${text}</div>`;
+            messageEl.innerHTML = `<div class="message-bubble" style="background: #e0e7ff; color: #4338ca; font-size: 12px;">ℹ️ ${escapeHtml(text)}</div>`;
             document.getElementById('chatMessages').appendChild(messageEl);
             scrollToBottom();
         }
@@ -646,7 +685,7 @@
         function addWelcomeMessage() {
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
-            addMessage('👋 Hello! I\'m KnowledgePart, your AI coding assistant. I can help you:\n\n• Explain code and concepts\n• Find and fix bugs\n• Refactor and improve code\n• Generate documentation\n• Write unit tests\n• Answer programming questions\n\nHow can I help you today?', false);
+            addMessage('👋 **Hello! I\'m KnowledgePart, your AI coding assistant.**\n\nI can help you:\n- 📖 Explain code and complex programming concepts\n- 🐛 Find and fix bugs in your scripts\n- ⚡ Refactor and optimize performance\n- 🧪 Generate comprehensive unit tests\n- 📝 Auto-generate documentation\n\n*Select a model on the left sidebar to begin, or type a message below!*', false);
         }
 
         function renderMessage(message) {
@@ -656,22 +695,50 @@
             
             const bubbleEl = document.createElement('div');
             bubbleEl.className = 'message-bubble';
-            bubbleEl.textContent = message.text;
+            
+            if (message.isUser) {
+                bubbleEl.textContent = message.text;
+            } else {
+                if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                    bubbleEl.innerHTML = marked.parse(message.text);
+                } else {
+                    bubbleEl.innerHTML = formatMarkdownFallback(message.text);
+                }
+            }
             
             messageEl.appendChild(bubbleEl);
             chatMessages.appendChild(messageEl);
             scrollToBottom();
         }
 
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function formatMarkdownFallback(text) {
+            let escaped = escapeHtml(text);
+            escaped = escaped.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            escaped = escaped.replace(/`([^`]+)`/g, '<code>$1</code>');
+            escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            return escaped.replace(/\n/g, '<br>');
+        }
+
         function scrollToBottom() {
             const chatMessages = document.getElementById('chatMessages');
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 0);
+            if (chatMessages) {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 10);
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════════
-        // MESSAGE SENDING
+        // MESSAGE SENDING & AI DISPATCH
         // ══════════════════════════════════════════════════════════════════════
         async function sendMessage() {
             const input = document.getElementById('chatInput');
@@ -688,6 +755,7 @@
             state.isLoading = true;
             const typingEl = document.createElement('div');
             typingEl.className = 'message ai';
+            typingEl.id = 'typingIndicator';
             typingEl.innerHTML = `
                 <div class="message-bubble">
                     <div class="typing-indicator">
@@ -700,80 +768,127 @@
             document.getElementById('chatMessages').appendChild(typingEl);
             scrollToBottom();
             
-            // Get response
-            const response = await getResponse(message);
-            
-            // Remove typing indicator
-            typingEl.remove();
-            state.isLoading = false;
-            
-            // Add response
-            addMessage(response, false);
+            try {
+                // Get AI response
+                const response = await getResponse(message);
+                
+                // Remove typing indicator
+                const currentTyping = document.getElementById('typingIndicator');
+                if (currentTyping) currentTyping.remove();
+                
+                state.isLoading = false;
+                addMessage(response, false);
+            } catch (err) {
+                const currentTyping = document.getElementById('typingIndicator');
+                if (currentTyping) currentTyping.remove();
+                
+                state.isLoading = false;
+                addMessage(`⚠️ **Error:** ${err.message}`, false);
+            }
         }
 
         async function getResponse(message) {
-            const lower = message.toLowerCase();
-            
-            // Gemini API
-            if (state.currentModel !== 'sandbox' && state.apiKey) {
-                try {
-                    return await getGeminiResponse(message);
-                } catch (error) {
-                    return `⚠️ API Error: ${error.message}\n\nFalling back to Offline Mode...`;
+            // Check if Gemini API model is selected
+            if (state.currentModel !== 'sandbox') {
+                if (!state.apiKey) {
+                    throw new Error('Please enter a Google Gemini API Key in the left sidebar to use Gemini models, or switch to Offline Sandbox Mode.');
                 }
+                return await getGeminiResponse(message);
             }
             
-            // Offline Sandbox
+            // Return Offline Sandbox Response
             return getOfflineResponse(message);
         }
 
         async function getGeminiResponse(message) {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${state.currentModel}:generateContent?key=${state.apiKey}`;
+            const model = state.currentModel || 'gemini-1.5-flash';
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(state.apiKey.trim())}`;
             
+            // Construct message history context
+            const contents = [];
+            const chatHistory = state.messages.slice(-10); // Keep last 10 messages for context
+            
+            chatHistory.forEach(msg => {
+                if (msg.text && !msg.text.startsWith('ℹ️') && !msg.text.startsWith('👋')) {
+                    contents.push({
+                        role: msg.isUser ? 'user' : 'model',
+                        parts: [{ text: msg.text }]
+                    });
+                }
+            });
+            
+            if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
+                contents.push({
+                    role: 'user',
+                    parts: [{ text: message }]
+                });
+            }
+
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: message }]
-                    }],
+                    contents: contents,
                     generationConfig: {
                         temperature: 0.7,
-                        maxOutputTokens: 1024
+                        maxOutputTokens: 2048
                     }
                 })
             });
             
+            const data = await response.json();
+            
             if (!response.ok) {
-                throw new Error('API request failed');
+                const errorDetails = data.error?.message || `HTTP status ${response.status}`;
+                throw new Error(`Gemini API Error: ${errorDetails}`);
             }
             
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!reply) {
+                throw new Error('No content received from Gemini model.');
+            }
+            
+            return reply;
         }
 
         function getOfflineResponse(message) {
             const lower = message.toLowerCase();
             
-            const responses = {
-                'hello|hi|hey': '👋 Hello! I\'m KnowledgePart. How can I assist you with coding today?',
-                'what|who|about|do': `I'm an AI-powered chatbot designed to help developers:\n\n💻 Code Analysis\n📖 Explanations\n🐛 Bug Fixes\n⚡ Refactoring\n🧪 Test Generation\n📝 Documentation\n\nTry asking me about code or programming!`,
-                'javascript|js|typescript|ts': `JavaScript is a versatile language for web and Node.js development. Key features:\n\n✅ ES6+ features (arrow functions, destructuring, async/await)\n✅ Flexible scoping and prototypes\n✅ Rich ecosystem (npm)\n\nWhat specific JavaScript topic interests you?`,
-                'python|py': `Python excels in data science, automation, and web development:\n\n✅ Clean, readable syntax\n✅ Powerful libraries (NumPy, Pandas, Django)\n✅ Great for beginners and experts\n\nInterested in a specific Python topic?`,
-                'best practices|tips|tricks': `🎯 Code Best Practices:\n\n1. Write clean, readable code\n2. Use meaningful variable names\n3. Keep functions small and focused\n4. Write tests for critical code\n5. Use version control\n6. Document your code\n7. Review code with team members\n\nWhat would you like to know more about?`,
-                'help|stuck|error': `Don't worry! I can help with:\n\n🔍 Debugging errors\n📚 Explaining concepts\n💡 Suggesting solutions\n🔧 Refactoring code\n\nShare what's bothering you!`,
-                'thank|thanks|thank you': `You're welcome! Happy to help. What else can I do for you? 😊`,
-                'bye|goodbye|exit': `Goodbye! Feel free to come back anytime. Happy coding! 👋`
-            };
-            
-            for (const [keywords, response] of Object.entries(responses)) {
-                const keywordList = keywords.split('|');
-                if (keywordList.some(kw => lower.includes(kw))) {
-                    return response;
-                }
+            if (lower.includes('explain') || lower.includes('code')) {
+                return `### 📖 Code Analysis & Explanation\n\nHere is an analysis of your request:\n\n1. **Core Concept:** Your code processes data structures or functions efficiently.\n2. **Logic Flow:** Inputs are validated, transformed through function loops or callbacks, and returned.\n3. **Recommendation:** Consider adding strict type checks or error boundaries.\n\n\`\`\`javascript\n// Example improvement:\ntry {\n  const result = processInput(data);\n  console.log("Success:", result);\n} catch (err) {\n  console.error("Error:", err.message);\n}\n\`\`\``;
             }
             
-            return `I'm in offline sandbox mode. To get AI-powered responses, please:\n\n1. Get a free API key from aistudio.google.com\n2. Paste it in the API Key field\n3. Select a Gemini model\n\nFor now, I can help with general programming questions!`;
+            if (lower.includes('fix') || lower.includes('bug') || lower.includes('error')) {
+                return `### 🐛 Bug Fix & Diagnostics\n\n**Identified Issue:** Potential undefined reference or unhandled asynchronous operation.\n\n**Suggested Fix:**\n\`\`\`javascript\n// Before:\nconst value = items.map(i => i.price);\n\n// Fixed with null check:\nconst value = (items || []).map(i => i?.price ?? 0);\n\`\`\`\n\nThis prevents runtime \`TypeError\` crashes if \`items\` or \`price\` is null/undefined!`;
+            }
+            
+            if (lower.includes('refactor') || lower.includes('performance')) {
+                return `### ⚡ Refactoring & Optimization\n\n**Optimization Tip:** Avoid re-calculating array lengths inside loop conditions or performing unnecessary DOM queries inside loops.\n\n\`\`\`javascript\n// Optimized approach using Array built-ins:\nconst processItems = (list) => list.reduce((acc, curr) => {\
+  if (curr.active) acc.push(curr.value);\
+  return acc;\
+}, []);\n\`\`\``;
+            }
+
+            if (lower.includes('test') || lower.includes('unit')) {
+                return `### 🧪 Generated Unit Tests\n\nHere is a complete Jest / Vitest test suite for your logic:\n\n\`\`\`javascript\ndescribe("KnowledgePart Function Tests", () => {\n  test("should calculate valid input correctly", () => {\n    const input = [10, 20, 30];\n    const result = sum(input);\n    expect(result).toBe(60);\n  });\n\n  test("should handle empty inputs gracefully", () => {\n    expect(sum([])).toBe(0);\n  });\n});\n\`\`\``;
+            }
+            
+            const canned = {
+                'hello': '👋 Hello! I\'m KnowledgePart. How can I assist with your coding today?',
+                'hi': '👋 Hi there! Ready to write some code?',
+                'hey': '👋 Hey! What are we building or debugging today?',
+                'javascript': '✅ **JavaScript Tip:** Always use \`const\` by default, \`let\` when mutating, and avoid \`var\`. Leverage \`async/await\` for clean asynchronous code!',
+                'python': '✅ **Python Tip:** Use list comprehensions for concise transformations and Type Hints (\`def foo(x: int) -> str:\`) for maintainable code!',
+                'thanks': 'You are very welcome! Happy coding! 😊',
+                'thank you': 'My pleasure! Let me know if you need anything else.',
+                'about': '🤖 **KnowledgePart AI:** Built with Google Gemini API & JavaScript. Enter your API key on the left to unlock full AI powers!'
+            };
+            
+            for (const [key, val] of Object.entries(canned)) {
+                if (lower.includes(key)) return val;
+            }
+            
+            return `I received your message: "*${escapeHtml(message)}*".\n\nI am currently in **Offline Sandbox Mode**. \n\nTo unlock live **Google Gemini AI** responses:\n1. Get a free API key from [aistudio.google.com](https://aistudio.google.com)\n2. Enter it in the left sidebar under **Google Gemini API Key**\n3. Select **Gemini 1.5 Flash** or **Gemini 2.0 Flash**!`;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -781,9 +896,11 @@
         // ══════════════════════════════════════════════════════════════════════
         function insertPrompt(prompt) {
             const input = document.getElementById('chatInput');
-            input.value = prompt;
-            autoResizeInput();
-            input.focus();
+            if (input) {
+                input.value = prompt;
+                autoResizeInput();
+                input.focus();
+            }
         }
 
         function handleKeydown(event) {
@@ -795,12 +912,14 @@
 
         function autoResizeInput() {
             const input = document.getElementById('chatInput');
-            input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            if (input) {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            }
         }
 
         function clearChat() {
-            if (confirm('Clear all messages?')) {
+            if (confirm('Clear all chat messages?')) {
                 state.messages = [];
                 addWelcomeMessage();
             }
