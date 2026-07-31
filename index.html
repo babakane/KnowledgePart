@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevForge — AI Project Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f8fafc">
+<link rel="manifest" href="data:application/json,{%22name%22:%22DevForge%22,%22short_name%22:%22DevForge%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23f8fafc%22,%22theme_color%22:%22%23f8fafc%22}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg: #f8fafc;               /* Light slate background */
+  --bg2: #ffffff;              /* Pure white panels & sidebar */
+  --bg3: #f1f5f9;              /* Light gray secondary inputs & tabs */
+  --bg4: #e2e8f0;              /* Highlight/Hover slate */
+  --border: #cbd5e1;           /* Crisp borders */
+  --border2: #94a3b8;          /* Defined panel lines */
+  --accent: #4f46e5;           /* Modern indigo accent */
+  --accent2: #4338ca;          /* Focus indigo */
+  --accent-dim: #eef2ff;       /* Indigo highlight background */
+  --accent-dim2: #e0e7ff;      /* Stronger highlight background */
+  --text: #0f172a;             /* Dark slate primary text */
+  --text2: #334155;            /* Slate secondary text */
+  --text3: #64748b;            /* Muted cool gray text */
+  --green: #059669;            /* Green indicators */
+  --green-dim: #ecfdf5;
+  --red: #dc2626;              /* Warning/error red */
+  --red-dim: #fef2f2;
+  --amber: #d97706;            /* Accent warnings */
+  --amber-dim: #fffbeb;
+  --blue: #2563eb;
+  --blue-dim: #eff6ff;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Syne',sans-serif;
+  --radius:8px;
+  --radius-lg:12px;
+  --sidebar-w:260px;
+  --chat-w:340px;
+  --header-h:52px;
+}
+
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ── HEADER ── */
+#header{
+  height:var(--header-h);display:flex;align-items:center;gap:12px;
+  padding:0 16px;background:var(--bg2);border-bottom:1px solid var(--border);
+  position:relative;z-index:100;flex-shrink:0;
+}
+#header .logo{font-size:17px;font-weight:800;letter-spacing:-0.5px;color:var(--text);white-space:nowrap}
+#header .logo span{color:var(--accent)}
+#header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.hbtn{
+  height:30px;padding:0 12px;border-radius:var(--radius);font-family:var(--sans);
+  font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:all 0.15s;border:1px solid var(--border);background:var(--bg3);color:var(--text2);
+}
+.hbtn:hover{color:var(--text);border-color:var(--accent);background:var(--accent-dim)}
+.hbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hbtn.primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.hbtn svg{width:14px;height:14px;flex-shrink:0}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background 0.3s}
+.status-dot.ok{background:var(--green)}
+.status-dot.err{background:var(--red)}
+
+/* ── LAYOUT ── */
+#app{display:flex;height:calc(100vh - var(--header-h));overflow:hidden}
+
+/* ── SIDEBAR (file tree) ── */
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;transition:width 0.25s,transform 0.25s;
+}
+#sidebar.collapsed{width:0;overflow:hidden}
+#sidebar-top{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+#sidebar-top label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.side-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:var(--radius);
+  outline:none;transition:border-color 0.15s;
+}
+.side-input:focus{border-color:var(--accent)}
+.side-row{display:flex;gap:6px}
+.side-row .side-input{flex:1}
+.sbtn{
+  padding:7px 12px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--radius);font-family:var(--sans);font-size:11px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:all 0.15s;
+}
+.sbtn:hover{background:var(--accent2)}
+.sbtn.ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.sbtn.ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.sbtn.danger{background:transparent;border:1px solid var(--red-dim);color:var(--red)}
+.sbtn.danger:hover{background:var(--red-dim)}
+
+#file-tree{flex:1;overflow-y:auto;padding:8px 0}
+.tree-section{padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.tree-item{
+  display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;
+  font-family:var(--mono);font-size:12px;color:var(--text2);transition:all 0.1s;
+  border-left:2px solid transparent;user-select:none;
+}
+.tree-item:hover{background:var(--bg3);color:var(--text)}
+.tree-item.active{background:var(--accent-dim);color:var(--accent2);border-left-color:var(--accent)}
+.tree-item.dir{color:var(--accent2)}
+.tree-item .icon{width:14px;height:14px;flex-shrink:0;opacity:0.7}
+.tree-item.active .icon{opacity:1}
+.tree-item .badge{
+  margin-left:auto;font-size:9px;padding:1px 5px;border-radius:3px;
+  background:var(--amber-dim);color:var(--amber);font-weight:600;
+}
+.file-type-icon{font-size:11px;width:16px;text-align:center;flex-shrink:0}
+
+#sidebar-bottom{padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.branch-tag{
+  display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);
+  padding:5px 8px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border);
+}
+.branch-tag span{color:var(--text2)}
+
+/* ── EDITOR AREA ── */
+#editor-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#editor-tabs{
+  display:flex;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 12px;gap:2px;flex-shrink:0;overflow-x:auto;height:38px;
+}
+#editor-tabs::-webkit-scrollbar{height:2px}
+.tab{
+  display:flex;align-items:center;gap:7px;padding:0 12px;height:28px;
+  border-radius:var(--radius) var(--radius) 0 0;font-size:12px;font-family:var(--mono);
+  cursor:pointer;color:var(--text2);white-space:nowrap;transition:all 0.1s;
+  border:1px solid transparent;border-bottom:none;flex-shrink:0;
+}
+.tab:hover{color:var(--text);background:var(--bg3)}
+.tab.active{color:var(--accent2);background:var(--bg);border-color:var(--border);position:relative;top:1px;font-weight:600}
+.tab .close-tab{
+  width:14px;height:14px;display:flex;align-items:center;justify-content:center;
+  border-radius:3px;opacity:0;font-size:10px;
+}
+.tab:hover .close-tab,.tab.active .close-tab{opacity:0.5}
+.tab .close-tab:hover{opacity:1;background:var(--red-dim);color:var(--red)}
+.tab .dot{width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0}
+
+#editor-toolbar{
+  display:flex;align-items:center;gap:8px;padding:6px 12px;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.tool-label{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.tool-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
+.tbtn{
+  height:26px;padding:0 10px;border-radius:5px;font-size:11px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);
+  font-family:var(--sans);transition:all 0.12s;display:flex;align-items:center;gap:5px;
+}
+.tbtn:hover{color:var(--text);border-color:var(--border2);background:var(--bg3)}
+.tbtn.active-tool{background:var(--accent-dim);color:var(--accent);border-color:var(--accent-dim2)}
+.tbtn svg{width:12px;height:12px}
+
+#code-container{flex:1;position:relative;overflow:hidden;display:flex}
+#line-nums{
+  width:48px;background:var(--bg3);border-right:1px solid var(--border);
+  padding:16px 8px;font-family:var(--mono);font-size:13px;line-height:1.6;
+  color:var(--text3);text-align:right;overflow:hidden;user-select:none;flex-shrink:0;
+}
+#code-wrap{flex:1;overflow:auto;position:relative;background:var(--bg2)}
+#codeArea{
+  width:100%;min-height:100%;background:transparent;color:var(--text);
+  font-family:var(--mono);font-size:13px;line-height:1.6;padding:16px;
+  border:none;outline:none;resize:none;tab-size:2;display:block;
+  caret-color:var(--accent);
+}
+#code-placeholder{
+  position:absolute;top:16px;left:16px;font-family:var(--mono);font-size:13px;
+  line-height:1.6;color:var(--text3);pointer-events:none;white-space:pre;
+}
+
+#editor-footer{
+  display:flex;align-items:center;gap:10px;padding:4px 12px;
+  background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;font-size:11px;color:var(--text3);font-family:var(--mono);
+}
+#editor-footer .ef-item{display:flex;align-items:center;gap:4px}
+#editor-footer .ef-sep{color:var(--border)}
+#editor-footer #cursor-pos{margin-left:auto}
+
+/* ── CHAT PANEL ── */
+#chat-panel{
+  width:var(--chat-w);flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;transition:width 0.25s;
+}
+#chat-panel.collapsed{width:0;overflow:hidden}
+#chat-header{
+  padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+#chat-header .ch-title{font-size:13px;font-weight:700;color:var(--text)}
+#chat-header .ch-model{
+  margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--accent);
+  background:var(--accent-dim);padding:3px 8px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--accent-dim2);transition:all 0.15s;
+}
+#chat-header .ch-model:hover{background:var(--accent-dim2)}
+
+#model-selector{
+  border-bottom:1px solid var(--border);background:var(--bg3);padding:10px;
+  display:none;flex-direction:column;gap:6px;flex-shrink:0;
+}
+#model-selector.open{display:flex}
+.model-group-label{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:2px 4px}
+.model-opt{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);
+  cursor:pointer;transition:all 0.12s;border:1px solid transparent;
+}
+.model-opt:hover{background:var(--bg4);border-color:var(--border)}
+.model-opt.selected{background:var(--accent-dim);border-color:var(--accent-dim2)}
+.model-opt .mo-name{font-size:12px;font-weight:600;color:var(--text)}
+.model-opt .mo-desc{font-size:10px;color:var(--text3);margin-top:1px}
+.model-opt .mo-badge{
+  margin-left:auto;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;flex-shrink:0;
+}
+.mo-badge.free{background:var(--green-dim);color:var(--green)}
+.mo-badge.fast{background:var(--blue-dim);color:var(--blue)}
+.mo-badge.smart{background:var(--accent-dim);color:var(--accent)}
+
+#api-key-section{
+  padding:10px;border-bottom:1px solid var(--border);display:none;flex-direction:column;gap:6px;flex-shrink:0;
+}
+#api-key-section.open{display:flex}
+#api-key-section label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.api-input-row{display:flex;gap:6px;flex-direction:column}
+.api-input-row input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:var(--radius);outline:none;
+  transition:border-color 0.15s;
+}
+.api-input-row input:focus{border-color:var(--accent)}
+.api-key-hint{font-size:10px;color:var(--text3)}
+.api-key-hint a{color:var(--accent);text-decoration:none}
+
+#chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg3)}
+.msg{display:flex;flex-direction:column;gap:4px;max-width:100%;animation:msgIn 0.2s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msg.user{align-items:flex-end}
+.msg.ai{align-items:flex-start}
+.msg-bubble{
+  padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.55;
+  max-width:calc(100% - 10px);word-break:break-word;
+}
+.msg.user .msg-bubble{background:var(--accent);color:#fff;border-radius:10px 10px 2px 10px}
+.msg.ai .msg-bubble{
+  background:var(--bg2);color:var(--text);border:1px solid var(--border);
+  border-radius:10px 10px 10px 2px;
+}
+.msg.ai .msg-bubble code{
+  background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--accent);
+}
+.msg.ai .msg-bubble pre{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px;margin:8px 0;overflow-x:auto;font-family:var(--mono);font-size:11px;
+  color:var(--text);line-height:1.6;
+}
+.msg.ai .msg-bubble pre code{background:none;padding:0;color:inherit}
+.msg-meta{font-size:10px;color:var(--text3);padding:0 4px}
+.msg-actions{display:flex;gap:6px;padding:0 2px}
+.msg-act{
+  font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg2);color:var(--text2);
+  font-family:var(--sans);transition:all 0.12s;
+}
+.msg-act:hover{color:var(--text);border-color:var(--border2);background:var(--bg3)}
+.typing-indicator{display:flex;gap:4px;align-items:center;padding:4px 0}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:typing 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{opacity:0.3;transform:scale(0.9)}30%{opacity:1;transform:scale(1)}}
+
+#chat-context{
+  padding:8px 12px;border-top:1px solid var(--border);
+  background:var(--bg3);font-size:11px;display:none;flex-shrink:0;
+}
+#chat-context.active{display:block}
+.ctx-label{color:var(--text3);margin-bottom:4px}
+.ctx-file{
+  display:flex;align-items:center;gap:6px;color:var(--accent);font-family:var(--mono);
+  background:var(--bg2);padding:4px 8px;border-radius:5px;border:1px solid var(--border);
+}
+.ctx-file button{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 2px}
+
+#chat-input-area{padding:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+#chat-toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.ct-btn{
+  height:24px;padding:0 8px;border-radius:4px;font-size:10px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);
+  font-family:var(--sans);transition:all 0.12s;display:flex;align-items:center;gap:4px;
+}
+.ct-btn:hover{color:var(--text);border-color:var(--border2);background:var(--bg3)}
+.ct-btn svg{width:11px;height:11px}
+.chat-row{display:flex;gap:6px;align-items:flex-end}
+#chatInput{
+  flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:var(--sans);font-size:13px;padding:9px 12px;border-radius:var(--radius);
+  outline:none;resize:none;max-height:120px;min-height:40px;line-height:1.4;
+  transition:border-color 0.15s;
+}
+#chatInput:focus{border-color:var(--accent)}
+#sendBtn{
+  width:38px;height:38px;border-radius:var(--radius);background:var(--accent);border:none;
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.15s;
+}
+#sendBtn:hover{background:var(--accent2)}
+#sendBtn:disabled{opacity:0.4;cursor:not-allowed}
+#sendBtn svg{width:16px;height:16px}
+
+/* ── DIFF VIEW ── */
+#diff-view{display:none;flex:1;flex-direction:column;overflow:hidden}
+#diff-view.active{display:flex}
+.diff-header{padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:12px;font-family:var(--mono);color:var(--text2);display:flex;gap:12px;flex-shrink:0}
+.diff-legend{display:flex;align-items:center;gap:6px}
+.diff-legend .dd{width:10px;height:10px;border-radius:2px}
+.diff-content{flex:1;overflow:auto;padding:0;font-family:var(--mono);font-size:12px;line-height:1.7}
+.diff-line{display:flex;gap:0;white-space:pre}
+.diff-line .ln{width:52px;text-align:right;padding:0 12px 0 4px;color:var(--text3);user-select:none;flex-shrink:0}
+.diff-line .lc{flex:1;padding:0 16px}
+.diff-line.add{background:#3dd68c14}.diff-line.add .lc{color:#059669}
+.diff-line.del{background:#f2575714}.diff-line.del .lc{color:#dc2626}
+.diff-line.ctx{color:var(--text2)}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:9999;pointer-events:none}
+.toast{
+  padding:10px 16px;border-radius:var(--radius);font-size:13px;font-family:var(--sans);
+  color:#fff;pointer-events:auto;display:flex;align-items:center;gap:8px;
+  animation:toastIn 0.25s ease,toastOut 0.3s ease 2.7s forwards;
+  max-width:320px;
+}
+.toast.success{background:#ecfdf5;border:1px solid var(--green);color:var(--green)}
+.toast.error{background:#fef2f2;border:1px solid var(--red);color:var(--red)}
+.toast.info{background:#eff6ff;border:1px solid var(--accent);color:var(--accent)}
+.toast svg{width:15px;height:15px;flex-shrink:0}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateX(20px)}}
+
+/* ── MODAL ── */
+#modal-overlay{
+  position:fixed;inset:0;background:#00000033;z-index:999;display:none;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+#modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:24px;width:min(480px,90vw);display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+.modal h3{font-size:15px;font-weight:700;color:var(--text)}
+.modal p{font-size:13px;color:var(--text2);line-height:1.5}
+.modal-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  font-family:var(--mono);font-size:12px;padding:10px 12px;border-radius:var(--radius);
+  outline:none;transition:border-color 0.15s;
+}
+.modal-input:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.mbtn{
+  padding:8px 20px;border-radius:var(--radius);font-family:var(--sans);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all 0.15s;
+}
+.mbtn.primary{background:var(--accent);color:#fff;border:none}
+.mbtn.primary:hover{background:var(--accent2)}
+.mbtn.ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.mbtn.ghost:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:var(--text3);padding:40px;text-align:center;
+}
+.empty-state svg{width:48px;height:48px;opacity:0.25}
+.empty-state h3{font-size:15px;font-weight:600;color:var(--text2)}
+.empty-state p{font-size:13px;line-height:1.5}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  :root{--sidebar-w:220px;--chat-w:300px}
+}
+@media(max-width:700px){
+  :root{--header-h:48px}
+  #sidebar{position:absolute;top:var(--header-h);left:0;height:calc(100vh - var(--header-h));z-index:50;box-shadow:4px 0 20px #0000001a}
+  #sidebar:not(.collapsed){width:280px}
+  #chat-panel{position:absolute;top:var(--header-h);right:0;height:calc(100vh - var(--header-h));z-index:50;box-shadow:-4px 0 20px #0000001a}
+  #chat-panel:not(.collapsed){width:min(320px,100vw)}
+  .logo-label{display:none}
+}
+@media(max-width:480px){
+  #chat-panel:not(.collapsed){width:100vw}
+  #sidebar:not(.collapsed){width:100vw}
+}
+
+/* ── PROGRESS ── */
+#progress{height:2px;background:var(--accent);position:fixed;top:0;left:0;width:0;z-index:9999;transition:width 0.3s,opacity 0.3s}
+#progress.done{opacity:0}
+
+/* ── SEARCH OVERLAY ── */
+#search-overlay{
+  position:absolute;top:48px;left:50%;transform:translateX(-50%);
+  width:min(560px,90vw);background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);z-index:200;display:none;flex-direction:column;
+  box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1);overflow:hidden;
+}
+#search-overlay.open{display:flex}
+#search-input{
+  width:100%;background:transparent;border:none;color:var(--text);
+  font-family:var(--sans);font-size:14px;padding:14px 16px;outline:none;
+}
+#search-results{max-height:280px;overflow-y:auto;border-top:1px solid var(--border)}
+.sr-item{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;
+  font-size:13px;color:var(--text2);transition:background 0.1s;font-family:var(--mono);
+}
+.sr-item:hover,.sr-item.focused{background:var(--bg3)}
+.sr-item .sr-file{color:var(--text);font-weight:500}
+.sr-item .sr-line{margin-left:auto;font-size:11px;color:var(--text3)}
+.sr-empty{padding:16px;text-align:center;font-size:13px;color:var(--text3)}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- HEADER -->
+<header id="header">
+  <button class="hbtn" id="toggle-sidebar" title="Toggle sidebar" onclick="toggleSidebar()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="2"/><line x1="5" y1="3" x2="5" y2="13"/></svg>
+  </button>
+  <div class="logo"><span>Dev</span>Forge <span class="logo-label" style="font-weight:400;color:var(--text3);font-size:13px">— AI Project Builder</span></div>
+  <div id="header-actions">
+    <button class="hbtn" onclick="toggleSearch()" title="Search (Ctrl+P)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      <span class="logo-label">Search</span>
+    </button>
+    <button class="hbtn" id="btn-diff" onclick="toggleDiff()" title="Toggle diff view">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="9" y2="8"/><line x1="3" y1="12" x2="11" y2="12"/></svg>
+      <span class="logo-label">Diff</span>
+    </button>
+    <button class="hbtn primary" id="btn-commit" onclick="openCommitModal()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="5.5"/><line x1="8" y1="10.5" x2="8" y2="15"/></svg>
+      Commit
+    </button>
+    <div class="status-dot" id="status-dot" title="API status"></div>
+    <button class="hbtn" id="toggle-chat" title="Toggle chat" onclick="toggleChat()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H6l-3 2v-2H3a1 1 0 01-1-1V3z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay">
+  <input id="search-input" placeholder="Search files, code…" oninput="doSearch(this.value)" onkeydown="searchKey(event)" autocomplete="off" spellcheck="false">
+  <div id="search-results"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div id="sidebar-top">
+      <label>Repository</label>
+      <input class="side-input" id="repoUrl" placeholder="https://github.com/user/repo" value="">
+      <div class="side-row">
+        <input class="side-input" id="ghToken" placeholder="GitHub token (optional)" type="password" title="Personal access token for private repos & commits">
+        <button class="sbtn" onclick="loadRepo()">Load</button>
+      </div>
+      <div class="side-row">
+        <button class="sbtn ghost" onclick="createNewFile()" style="flex:1">+ File</button>
+        <button class="sbtn ghost" onclick="createNewFolder()" style="flex:1">+ Folder</button>
+      </div>
+    </div>
+
+    <div id="file-tree">
+      <div style="padding:40px 16px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6">
+        Enter a GitHub repo URL and click Load, or create new files manually.
+      </div>
+    </div>
+
+    <div id="sidebar-bottom">
+      <div class="branch-tag">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="11" cy="4" r="2"/><path d="M5 6v5M11 6c0 2-2 4-6 4"/></svg>
+        <span id="current-branch">main</span>
+      </div>
+      <button class="sbtn ghost" onclick="showBranchModal()">Switch / Create Branch</button>
+    </div>
+  </nav>
+
+  <!-- EDITOR -->
+  <div id="editor-area">
+    <div id="editor-tabs">
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);padding:0 4px;display:flex;align-items:center">No files open</div>
+    </div>
+    <div id="editor-toolbar">
+      <span class="tool-label" id="file-lang">plaintext</span>
+      <div class="tool-sep"></div>
+      <button class="tbtn" onclick="formatCode()" title="Format">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="4" x2="13" y2="4"/><line x1="3" y1="8" x2="9" y2="8"/><line x1="5" y1="12" x2="13" y2="12"/></svg>
+        Format
+      </button>
+      <button class="tbtn" onclick="copyCode()" title="Copy code">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8" height="9" rx="1"/><path d="M11 5V3a1 1 0 00-1-1H3a1 1 0 00-1-1H3a1 1 0 00-1 1v8a1 1 0 001 1h2"/></svg>
+        Copy
+      </button>
+      <button class="tbtn" onclick="downloadFile()" title="Download file">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v8M5 8l3 3 3-3"/><line x1="3" y1="13" x2="13" y2="13"/></svg>
+        Download
+      </button>
+      <div class="tool-sep"></div>
+      <button class="tbtn" onclick="sendCodeToChat()" title="Ask AI about this code">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/></svg>
+        Ask AI
+      </button>
+      <button class="tbtn" id="btn-fix" onclick="requestCodeFix()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 3L3 13M4 3h6v6"/></svg>
+        Fix Issues
+      </button>
+      <button class="tbtn" onclick="generateDocs()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h5l4 4v8H4V2z"/><line x1="4" y1="6" x2="7" y2="6"/><line x1="4" y1="9" x2="10" y2="9"/><line x1="4" y1="12" x2="8" y2="12"/></svg>
+        Gen Docs
+      </button>
+    </div>
+
+    <div id="code-container">
+      <div id="line-nums" aria-hidden="true">1</div>
+      <div id="code-wrap">
+        <div id="code-placeholder">// Open a file from the sidebar or paste code here…</div>
+        <textarea id="codeArea" spellcheck="false" oninput="onCodeInput()" onscroll="syncScroll()" onkeydown="handleTabKey(event)" onclick="updateCursor()" onkeyup="updateCursor()"></textarea>
+      </div>
+    </div>
+    <div id="diff-view"></div>
+
+    <div id="editor-footer">
+      <span class="ef-item" id="file-name-footer">untitled</span>
+      <span class="ef-sep">·</span>
+      <span class="ef-item" id="file-size-footer">0 B</span>
+      <span class="ef-sep">·</span>
+      <span class="ef-item">UTF-8</span>
+      <span class="ef-sep">·</span>
+      <span class="ef-item">LF</span>
+      <span class="ef-item" id="cursor-pos">Ln 1, Col 1</span>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div id="chat-panel">
+    <div id="chat-header">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M2 3a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H6l-3 2v-2H3a1 1 0 01-1-1V3z"/></svg>
+      <span class="ch-title">AI Assistant</span>
+      <div class="ch-model" id="model-badge" onclick="toggleModelSelector()">gemini-2.5-flash-lite ▾</div>
+    </div>
+
+    <div id="model-selector">
+      <div class="model-group-label">Google Gemini (requires API key)</div>
+      <div class="model-opt selected" data-model="gemini-2.5-flash-lite" data-name="gemini-flash-lite" onclick="selectModel(this)">
+        <div><div class="mo-name">Gemini 2.5 Flash-Lite</div><div class="mo-desc">Super fast, cost-efficient</div></div>
+        <span class="mo-badge fast">Fast</span>
+      </div>
+      <div class="model-opt" data-model="gemini-2.5-flash" data-name="gemini-flash" onclick="selectModel(this)">
+        <div><div class="mo-name">Gemini 2.5 Flash</div><div class="mo-desc">Best price-performance & coding speed</div></div>
+        <span class="mo-badge smart">Standard</span>
+      </div>
+      <div class="model-opt" data-model="gemini-2.5-pro" data-name="gemini-pro" onclick="selectModel(this)">
+        <div><div class="mo-name">Gemini 2.5 Pro</div><div class="mo-desc">Complex reasoning & code synthesis</div></div>
+        <span class="mo-badge smart">Pro</span>
+      </div>
+
+      <div class="model-group-label" style="margin-top:6px">Free & Sandbox</div>
+      <div class="model-opt" data-model="free-sandbox" data-name="offline-sandbox" onclick="selectModel(this)">
+        <div><div class="mo-name">Offline Sandbox AI</div><div class="mo-desc">Free, unlimited local tokens</div></div>
+        <span class="mo-badge free">Free</span>
+      </div>
+
+      <div class="model-group-label" style="margin-top:6px">API Settings</div>
+      <button class="sbtn ghost" style="width:100%;font-size:11px" onclick="toggleApiKeySection()">⚙ Configure API Key</button>
+    </div>
+
+    <div id="api-key-section">
+      <label>Google Gemini API Key</label>
+      <div class="api-input-row">
+        <input type="password" id="apiKeyInput" placeholder="AIzaSy…" autocomplete="off">
+        <div style="display: flex; gap: 6px; margin-top: 4px;">
+          <button class="sbtn" style="flex:1; font-size:11px;" onclick="confirmAndSaveKey()">Confirm & Save</button>
+          <button class="sbtn ghost" style="flex:1; font-size:11px" onclick="testApiKey()">Test Connection</button>
+        </div>
+      </div>
+      <div class="api-key-hint">
+        Free tier available at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>. Your key is stored locally only.
+      </div>
+    </div>
+
+    <div id="chat-messages">
+      <div class="msg ai">
+        <div class="msg-bubble">
+          Hello! I'm your AI coding assistant. I can help you:
+          <br><br>
+          • <strong>Analyze & explain</strong> code<br>
+          • <strong>Fix bugs</strong> and issues<br>
+          • <strong>Generate docs</strong> and comments<br>
+          • <strong>Refactor</strong> and improve code<br>
+          • <strong>Answer questions</strong> about your project
+          <br><br>
+          Load a repo or paste code in the editor, then ask me anything!
+        </div>
+        <span class="msg-meta">DevForge AI</span>
+      </div>
+    </div>
+
+    <div id="chat-context"></div>
+
+    <div id="chat-input-area">
+      <div id="chat-toolbar">
+        <button class="ct-btn" onclick="insertPrompt('Explain this code')" title="Explain code">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6 6.5c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2v1.5"/><circle cx="8" cy="12.5" r=".5" fill="currentColor"/></svg>
+          Explain
+        </button>
+        <button class="ct-btn" onclick="insertPrompt('Find and fix bugs in this code')" title="Fix bugs">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 3h3L10 7l1 3-3-2-3 2 1-3-2.5-2h3z"/></svg>
+          Fix
+        </button>
+        <button class="ct-btn" onclick="insertPrompt('Refactor this code for better readability and performance')" title="Refactor">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 0110 0M3 8l-2-2M3 8l2-2M13 8l2 2M13 8l-2 2"/></svg>
+          Refactor
+        </button>
+        <button class="ct-btn" onclick="insertPrompt('Write tests for this code')" title="Write tests">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8l2 3-6 8-6-8z"/></svg>
+          Tests
+        </button>
+        <button class="ct-btn" onclick="clearChat()" title="Clear chat">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+          Clear
+        </button>
+      </div>
+      <div class="chat-row">
+        <textarea id="chatInput" placeholder="Ask about your code…" rows="1" onkeydown="chatInputKeydown(event)" oninput="autogrow(this)"></textarea>
+        <button id="sendBtn" onclick="sendChat()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8l12-6-5 6 5 6-12-6z" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMIT MODAL -->
+<div id="modal-overlay">
+  <div class="modal" id="modal-content">
+    <h3 id="modal-title">Commit Changes</h3>
+    <p id="modal-desc">Enter a commit message to push your changes to GitHub.</p>
+    <input type="text" class="modal-input" id="modal-input" placeholder="feat: update code…">
+    <div class="modal-actions">
+      <button class="mbtn ghost" onclick="closeModal()">Cancel</button>
+      <button class="mbtn primary" id="modal-confirm">Commit</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const state = {
+  repo: null,
+  repoUrl: '',
+  token: '',
+  files: [],
+  openTabs: [],
+  activeTab: null,
+  dirtyTabs: new Set(),
+  model: 'gemini-2.5-flash-lite',
+  modelName: 'gemini-flash-lite',
+  apiKey: localStorage.getItem('devforge_apikey') || '',
+  chatHistory: [],
+  currentFile: null,
+  sidebarOpen: true,
+  chatOpen: true,
+  branch: 'main',
+  branchSetManually: false,
+};
+
+// ── OFFLINE SANDBOX AI BACKGROUND ENGINE ────────────────
+const OfflineAI = {
+  detectLanguage(fileName, code) {
+    const ext = (fileName || '').split('.').pop().toLowerCase();
+    if (['js', 'jsx'].includes(ext)) return 'javascript';
+    if (['ts', 'tsx'].includes(ext)) return 'typescript';
+    if (['py'].includes(ext)) return 'python';
+    if (['html', 'htm'].includes(ext)) return 'html';
+    if (['css'].includes(ext)) return 'css';
+    if (code.includes('import React') || code.includes('<div')) return 'jsx';
+    if (code.includes('def ') || code.includes('import ')) return 'python';
+    return 'javascript';
+  },
+
+  generate(prompt, code, fileName) {
+    const lang = this.detectLanguage(fileName, code);
+    const lower = prompt.toLowerCase();
+
+    if (lower.includes('doc') || lower.includes('comment')) {
+      return this.generateDocs(code, lang, fileName);
+    }
+    if (lower.includes('fix') || lower.includes('bug')) {
+      return this.fixBugs(code, lang, fileName);
+    }
+    if (lower.includes('refactor')) {
+      return this.refactor(code, lang, fileName);
+    }
+    if (lower.includes('test')) {
+      return this.generateTests(code, lang, fileName);
+    }
+    return this.handleCustom(prompt, code, lang, fileName);
+  },
+
+  generateDocs(code, lang, fileName) {
+    if (!code) return "### 📝 Offline Documenter\n\nNo code found in the active editor. Load some code first.";
+    let lines = code.split('\n');
+    let updatedLines = [];
+    let count = 0;
+
+    if (['javascript', 'typescript', 'jsx', 'tsx'].includes(lang)) {
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        const funcMatch = line.match(/(?:export\s+)?(async\s+)?function\s+(\w+)\s*\(([^)]*)\)/) ||
+                          line.match(/(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*=>/);
+        if (funcMatch) {
+          const funcName = funcMatch[2] || funcMatch[1];
+          const rawParams = funcMatch[3] || '';
+          const params = rawParams.split(',').map(p => p.trim()).filter(Boolean);
+          let jsdoc = `/**\n * @function ${funcName}\n * @description Performs modular calculations and structural execution.\n`;
+          params.forEach(p => { jsdoc += ` * @param {*} ${p} - Input evaluation control argument.\n`; });
+          jsdoc += ` * @returns {*} Output interface value.\n */`;
+          updatedLines.push(jsdoc);
+          count++;
+        }
+        updatedLines.push(line);
+      }
+    } else if (lang === 'python') {
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        updatedLines.push(line);
+        const pyMatch = line.match(/^\s*def\s+(\w+)\s*\(([^)]*)\):/);
+        if (pyMatch) {
+          const indent = line.match(/^\s*/)[0] + '    ';
+          const funcName = pyMatch[1];
+          const rawParams = pyMatch[2] || '';
+          const params = rawParams.split(',').map(p => p.trim()).filter(Boolean);
+          let doc = `${indent}"""\n${indent}Perform nominal operations for ${funcName}.\n\n`;
+          params.forEach(p => { doc += `${indent}:param ${p}: Input runtime parameter.\n`; });
+          doc += `${indent}:return: Execution output.\n${indent}"""`;
+          updatedLines.push(doc);
+          count++;
+        }
+      }
+    } else {
+      return `### 📝 Offline Documenter\n\nInline documentation parsing is designed for Python, JavaScript, and TypeScript files. Here is a custom comment configuration template you can apply:\n\n\`\`\`${lang}\n/**\n * File: ${fileName || 'Component'}\n * Target: Unified structural logic module\n */\n\`\`\``;
+    }
+
+    return `### 📝 Offline Document Blocks Appended
+
+Successfully processed \`${fileName || 'untitled'}\` and generated **${count}** context-aware documentation headers.
+
+\`\`\`${lang}
+${updatedLines.join('\n')}
+\`\`\`
+
+*Review the changes and click **Apply to Editor** above to update your code.*`;
+  },
+
+  fixBugs(code, lang, fileName) {
+    if (!code) return "### 🛠️ Offline Code Hardener\n\nNo file content detected. Load a file to scan for issues.";
+    let updatedCode = code;
+    let changelog = [];
+
+    if (['javascript', 'typescript', 'jsx', 'tsx'].includes(lang)) {
+      if (code.includes(' == ') && !code.includes(' == null')) {
+        updatedCode = updatedCode.replace(/ == (?!null)/g, ' === ');
+        changelog.push("Upgraded broad comparisons (\`==\`) to strict type equality checks (\`===\`).");
+      }
+      if (updatedCode.includes('var ')) {
+        updatedCode = updatedCode.replace(/\bvar\s/g, 'const ');
+        changelog.push("Converted obsolete function-scoped variables (\`var\`) to structural scopes (\`const\`).");
+      }
+      if (updatedCode.includes('.map(') && !updatedCode.includes('key=')) {
+        updatedCode = updatedCode.replace(/\.map\(\(([^)]+)\)\s*=>\s*<(\w+)([^>]*)>/g, '.map(($1, index) => <$2 key={index}$3>');
+        changelog.push("Injected necessary React layout unique identification indices (\`key={index}\`) on loop map instances.");
+      }
+    } else if (lang === 'python') {
+      if (updatedCode.match(/print\s+[^()]+/)) {
+        updatedCode = updatedCode.replace(/print\s+(.+)$/gm, 'print($1)');
+        changelog.push("Fixed Python 2 deprecated printing syntaxes into standardized Python 3 function execution configurations.");
+      }
+    } else if (lang === 'html') {
+      if (updatedCode.includes('<img') && !updatedCode.includes('alt=')) {
+        updatedCode = updatedCode.replace(/<img([^>]*?)>/g, '<img$1 alt="Rendered background interface element">');
+        changelog.push("Added fallback \`alt\` accessibility parameters to active image structures.");
+      }
+    }
+
+    if (changelog.length === 0) {
+      return `### 🛠️ Offline Diagnostic Clear
+
+No structural layout errors or dangerous assignments were flagged within \`${fileName || 'untitled'}\` by local parsing. The codebase appears highly reliable!`;
+    }
+
+    return `### 🛠️ Sandbox Debug & Hardening Completed
+
+Identified and resolved **${changelog.length}** syntax quality warnings in \`${fileName || 'untitled'}\`:
+
+${changelog.map(item => `- ${item}`).join('\n')}
+
+#### Refined Code Output:
+\`\`\`${lang}
+${updatedCode}
+\`\`\`
+
+*Review and click **Apply to Editor** to merge these changes.*`;
+  },
+
+  refactor(code, lang, fileName) {
+    if (!code) return "### ⚡ Offline Refactoring Engine\n\nLoad code into the workspace to apply structural improvements.";
+    let updatedCode = code;
+    let changes = [];
+
+    if (['javascript', 'typescript', 'jsx', 'tsx'].includes(lang)) {
+      const functionRegex = /function\s+(\w+)\s*\(([^)]*)\)\s*{([\s\S]*?)}/g;
+      if (functionRegex.test(code)) {
+        updatedCode = updatedCode.replace(functionRegex, 'const $1 = ($2) => {$3}');
+        changes.push("Converted ES5 structures to modern ES6 arrow function variables.");
+      }
+    } else if (lang === 'python') {
+      const listRegex = /for\s+(\w+)\s+in\s+([^:]+):\s*(\w+)\.append\(\1\)/g;
+      if (listRegex.test(code)) {
+        updatedCode = updatedCode.replace(listRegex, '$3 = [x for x in $2]');
+        changes.push("Reorganized loops into performant array generation comprehensions.");
+      }
+    }
+
+    if (changes.length === 0) {
+      return `### ⚡ Offline Refactor Analysis
+
+The current architecture of \`${fileName || 'untitled'}\` matches clean-code specifications under local guidelines. No transformations needed!`;
+    }
+
+    return `### ⚡ Refactored Clean-Code Layout
+
+Re-structured structural layout components inside \`${fileName || 'untitled'}\`:
+
+${changes.map(item => `- ${item}`).join('\n')}
+
+\`\`\`${lang}
+${updatedCode}
+\`\`\`
+
+*Select **Apply to Editor** above to safely update your file layout.*`;
+  },
+
+  generateTests(code, lang, fileName) {
+    if (!code) return "### 🧪 Test Suite Compiler\n\nActive context empty. Load workspace logic to build tests.";
+    let suite = '';
+    let found = [];
+
+    if (['javascript', 'typescript', 'jsx', 'tsx'].includes(lang)) {
+      const matches = [...code.matchAll(/(?:export\s+)?(?:async\s+)?function\s+(\w+)/g)];
+      const matchesArrow = [...code.matchAll(/(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g)];
+      found = [...matches.map(m => m[1]), ...matchesArrow.map(m => m[1])];
+
+      suite = `import { ${found.join(', ') || 'module'} } from './${(fileName || 'index').split('.')[0]}';\n\ndescribe('${fileName || 'Main Logic'} Operations', () => {\n`;
+      if (found.length > 0) {
+        found.forEach(f => {
+          suite += `  test('should assert nominal validation paths on ${f}', () => {\n    const response = ${f}();\n    expect(response).toBeDefined();\n  });\n\n`;
+        });
+      } else {
+        suite += `  test('should execute standard behavioral execution parameters', () => {\n    expect(true).toBe(true);\n  });\n`;
+      }
+      suite += `});`;
+    } else if (lang === 'python') {
+      const matches = [...code.matchAll(/^\s*def\s+(\w+)/gm)];
+      found = matches.map(m => m[1]);
+
+      suite = `import unittest\nfrom ${(fileName || 'main').split('.')[0]} import ${found.join(', ') || '*'}\n\nclass Test${(fileName || 'module').split('.')[0].toUpperCase()}(unittest.TestCase):\n`;
+      if (found.length > 0) {
+        found.forEach(f => {
+          suite += `    def test_${f}_baseline(self):\n        # Execute test runner parameters\n        self.assertTrue(True)\n\n`;
+        });
+      } else {
+        suite += `    def test_default_nominal(self):\n        self.assertEqual(1, 1)\n`;
+      }
+      suite += `\nif __name__ == '__main__':\n    unittest.main()`;
+    } else {
+      return `### 🧪 Local Unit Tests\n\nUnit test setups are optimized for Python, JavaScript, or TypeScript context workspaces. Please load a valid file code block!`;
+    }
+
+    return `### 🧪 Unit Verification Suite Compiled
+
+Generated test-runner frameworks matching defined elements inside \`${fileName || 'untitled'}\`:
+
+\`\`\`${lang}
+${suite}
+\`\`\`
+
+*Save this as a corresponding unit file to keep your local branch fully tested!*`;
+  },
+
+  handleCustom(prompt, code, lang, fileName) {
+    const lower = prompt.toLowerCase();
+    
+    if (lower.includes('button') || lower.includes('component') || lower.includes('html') || lower.includes('ui') || lower.includes('login')) {
+      let contentBlock = '';
+      if (lang === 'html') {
+        contentBlock = `<div class="card" style="padding: 24px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); font-family: sans-serif;">
+  <h3 style="font-size: 1.25rem; margin-bottom: 8px; color: var(--text);">Dynamic Component Card</h3>
+  <p style="color: var(--text2); font-size: 0.9rem; margin-bottom: 16px;">This component module was generated client-side by DevForge local background processes.</p>
+  <button style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Execute Command</button>
+</div>`;
+        return `### 🌐 Local HTML/UI Component Compiled
+
+Generated modular structure:
+
+\`\`\`html
+${contentBlock}
+\`\`\`
+
+*Use the **Apply to Editor** control option to integrate this markup into your workspace.*`;
+      } else if (['jsx', 'tsx', 'javascript', 'typescript'].includes(lang)) {
+        contentBlock = `import React, { useState } from 'react';
+
+export const ModernDashboardView = () => {
+  const [dataFlow, setDataFlow] = useState('Operational Status OK');
+
+  return (
+    <div className="flex flex-col p-6 max-w-sm bg-white rounded-xl border border-slate-200 shadow-sm font-sans">
+      <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Modular UI Widget</span>
+      <h3 className="text-base font-semibold text-slate-800 mt-1">DevForge Sandbox Interface</h3>
+      <p className="text-xs text-slate-500 mt-2">Active state binding: {dataFlow}</p>
+      
+      <button 
+        onClick={() => setDataFlow('Status Updated Cleanly')}
+        className="mt-4 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition"
+      >
+        Update Status Hook
+      </button>
+    </div>
+  );
+};`;
+        return `### 🌐 Local React Component Compiled
+
+Generated React component structure:
+
+\`\`\`tsx
+${contentBlock}
+\`\`\`
+
+*Inject this modular script directly into your React project using the **Apply to Editor** action!*`;
+      }
+    }
+
+    return `### 🌐 Offline Sandbox Background Engine
+
+Recognized Custom Command: *"${prompt}"*
+
+Because you are using the client-side **Offline Sandbox Background AI**, your parameters were analyzed using local pattern evaluation rule sets.
+
+To connect with live Google generative capabilities, select **Gemini 2.5 Flash** from the settings panel and confirm your Gemini API key!`;
+  }
+};
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (state.apiKey) {
+    document.getElementById('apiKeyInput').value = state.apiKey;
+    setStatus('ok');
+  } else {
+    const freeOpt = document.querySelector('[data-model="free-sandbox"]');
+    if (freeOpt) selectModel(freeOpt);
+  }
+  updateLineNums();
+  window.addEventListener('resize', handleResize);
+  handleResize();
+  document.addEventListener('keydown', globalHotkeys);
+});
+
+function handleResize() {
+  const w = window.innerWidth;
+  if (w <= 700) {
+    if (state.sidebarOpen && state.chatOpen) {
+      state.chatOpen = false;
+      document.getElementById('chat-panel').classList.add('collapsed');
+    }
+  }
+}
+
+function globalHotkeys(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); toggleSearch(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveFile(); }
+  if (e.key === 'Escape') {
+    closeSearch();
+    closeModal();
+    document.getElementById('model-selector').classList.remove('open');
+    document.getElementById('api-key-section').classList.remove('open');
+  }
+}
+
+// ── PROGRESS BAR ──────────────────────────────────────
+function startProgress() {
+  const p = document.getElementById('progress');
+  p.style.width = '40%';
+  p.style.opacity = '1';
+}
+function finishProgress() {
+  const p = document.getElementById('progress');
+  p.style.width = '100%';
+  setTimeout(() => { p.classList.add('done'); setTimeout(() => { p.style.width = '0'; p.classList.remove('done'); }, 300); }, 200);
+}
+
+// ── STATUS ────────────────────────────────────────────
+function setStatus(s) {
+  const d = document.getElementById('status-dot');
+  d.className = 'status-dot ' + s;
+  d.title = s === 'ok' ? 'API ready' : s === 'err' ? 'API error' : 'Not configured';
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = {
+    success: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M5 8l2 2 4-4"/></svg>`,
+    error: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><line x1="6" y1="6" x2="10" y2="10"/><line x1="10" y1="6" x2="6" y2="10"/></svg>`,
+    info: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r=".5" fill="currentColor"/></svg>`,
+  };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = icons[type] + `<span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ── SIDEBAR TOGGLE ─────────────────────────────────────
+function toggleSidebar() {
+  state.sidebarOpen = !state.sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !state.sidebarOpen);
+}
+function toggleChat() {
+  state.chatOpen = !state.chatOpen;
+  document.getElementById('chat-panel').classList.toggle('collapsed', !state.chatOpen);
+}
+
+// ── REPO LOADING ──────────────────────────────────────
+async function loadRepo() {
+  const urlInput = document.getElementById('repoUrl').value.trim();
+  const token = document.getElementById('ghToken').value.trim();
+  if (!urlInput) { toast('Enter a GitHub repo URL', 'error'); return; }
+
+  state.token = token;
+  startProgress();
+
+  try {
+    let owner, repo, detectedBranch = null;
+    let cleanUrl = urlInput.replace(/\/$/, "");
+
+    const matchTree = cleanUrl.match(/github\.com\/([^/]+)\/([^/]+)\/tree\/(.+)/);
+    const matchBlob = cleanUrl.match(/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)/);
+    const matchStandard = cleanUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+
+    if (matchTree) {
+      owner = matchTree[1];
+      repo = matchTree[2];
+      detectedBranch = matchTree[3];
+    } else if (matchBlob) {
+      owner = matchBlob[1];
+      repo = matchBlob[2];
+      detectedBranch = matchBlob[3];
+    } else if (matchStandard) {
+      owner = matchStandard[1];
+      repo = matchStandard[2].split('/')[0];
+    } else {
+      throw new Error('Invalid GitHub URL');
+    }
+
+    state.repo = { owner, repo };
+    state.repoUrl = `https://github.com/${owner}/${repo}`;
+    document.getElementById('repoUrl').value = state.repoUrl;
+
+    const headers = token ? { Authorization: `token ${token}` } : {};
+
+    if (state.branchSetManually) {
+      // Keep state selection
+    } else if (detectedBranch) {
+      state.branch = detectedBranch;
+    } else {
+      const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
+      if (!repoRes.ok) {
+        if (repoRes.status === 403) throw new Error('API limit reached. Add a GitHub Token to load.');
+        throw new Error(`Repo not found (${repoRes.status})`);
+      }
+      const repoData = await repoRes.json();
+      state.branch = repoData.default_branch || 'main';
+    }
+    document.getElementById('current-branch').textContent = state.branch;
+
+    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${state.branch}?recursive=1`, { headers });
+    if (!treeRes.ok) {
+      if (treeRes.status === 404) {
+        throw new Error(`Branch "${state.branch}" not found in this repository.`);
+      }
+      throw new Error('Could not load file tree. Verification failed.');
+    }
+    const treeData = await treeRes.json();
+
+    state.files = treeData.tree.filter(f => f.type === 'blob');
+    renderFileTree(state.files);
+    toast(`Loaded ${state.files.length} files from ${owner}/${repo} (${state.branch})`, 'success');
+    finishProgress();
+  } catch (e) {
+    finishProgress();
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function renderFileTree(files) {
+  const tree = document.getElementById('file-tree');
+  tree.innerHTML = '';
+
+  const dirs = {};
+  files.forEach(f => {
+    const parts = f.path.split('/');
+    if (parts.length === 1) {
+      if (!dirs['']) dirs[''] = [];
+      dirs[''].push(f);
+    } else {
+      const dir = parts.slice(0, -1).join('/');
+      if (!dirs[dir]) dirs[dir] = [];
+      dirs[dir].push(f);
+    }
+  });
+
+  const sortedDirs = Object.keys(dirs).sort();
+
+  sortedDirs.forEach(dir => {
+    if (dir) {
+      const sec = document.createElement('div');
+      sec.className = 'tree-item dir';
+      sec.innerHTML = `<span class="file-type-icon">📁</span><span>${dir}/</span>`;
+      tree.appendChild(sec);
+    }
+    dirs[dir].forEach(f => {
+      const name = f.path.split('/').pop();
+      const item = document.createElement('div');
+      item.className = 'tree-item';
+      item.dataset.path = f.path;
+      item.innerHTML = `<span class="file-type-icon">${fileIcon(name)}</span><span>${name}</span>`;
+      item.onclick = () => openFile(f.path);
+      tree.appendChild(item);
+    });
+  });
+}
+
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const map = {
+    js:'🟨',ts:'🔷',jsx:'⚛️',tsx:'⚛️',py:'🐍',html:'🌐',css:'🎨',
+    scss:'🎨',json:'📋',md:'📝',txt:'📄',sh:'⚙️',yml:'⚙️',yaml:'⚙️',
+    env:'🔒',gitignore:'👁️',png:'🖼️',jpg:'🖼️',svg:'🖼️',pdf:'📕',
+    sql:'🗄️',go:'🐹',rs:'🦀',java:'☕',rb:'💎',php:'🐘',
+    c:'⚡',cpp:'⚡',h:'📎',lock:'🔒',
+  };
+  return map[ext] || '📄';
+}
+
+// ── FILE OPERATIONS ───────────────────────────────────
+async function openFile(path) {
+  if (state.openTabs.includes(path)) {
+    setActiveTab(path);
+    return;
+  }
+
+  startProgress();
+  try {
+    let content = '';
+    if (state.repo) {
+      const headers = state.token ? { Authorization: `token ${state.token}` } : {};
+      const { owner, repo } = state.repo;
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${state.branch}`, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.encoding === 'base64') {
+        content = decodeBase64(data.content);
+      } else if (data.download_url) {
+        const r2 = await fetch(data.download_url);
+        content = await r2.text();
+      }
+    }
+    state.openTabs.push(path);
+    localStorage.setItem('devforge_file_' + path, content);
+    setActiveTab(path, content);
+    finishProgress();
+  } catch(e) {
+    finishProgress();
+    toast('Error loading file: ' + e.message, 'error');
+  }
+}
+
+function decodeBase64(b64) {
+  try {
+    return decodeURIComponent(atob(b64.replace(/\s/g, '')).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  } catch (e) {
+    try {
+      return atob(b64.replace(/\s/g, ''));
+    } catch (err) {
+      return b64;
+    }
+  }
+}
+
+function setActiveTab(path, content) {
+  state.activeTab = path;
+  state.currentFile = path;
+
+  const stored = content !== undefined ? content : (localStorage.getItem('devforge_file_' + path) || '');
+  document.getElementById('codeArea').value = stored;
+  document.getElementById('code-placeholder').style.display = stored ? 'none' : 'block';
+  updateLineNums();
+  updateFooter();
+  renderTabs();
+  highlightActiveFile(path);
+  updateCursor();
+}
+
+function renderTabs() {
+  const container = document.getElementById('editor-tabs');
+  container.innerHTML = '';
+  if (state.openTabs.length === 0) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--text3);font-family:var(--mono);padding:0 4px;display:flex;align-items:center">No files open</div>';
+    return;
+  }
+  state.openTabs.forEach(path => {
+    const name = path.split('/').pop();
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (path === state.activeTab ? ' active' : '');
+    tab.innerHTML = `
+      <span class="file-type-icon" style="font-size:12px">${fileIcon(name)}</span>
+      <span>${name}</span>
+      ${state.dirtyTabs.has(path) ? '<span class="dot"></span>' : ''}
+      <span class="close-tab" onclick="closeTab(event,'${path}')">✕</span>`;
+    tab.onclick = (e) => { if (!e.target.classList.contains('close-tab')) setActiveTab(path); };
+    container.appendChild(tab);
+  });
+}
+
+function closeTab(e, path) {
+  e.stopPropagation();
+  state.openTabs = state.openTabs.filter(t => t !== path);
+  state.dirtyTabs.delete(path);
+  if (state.activeTab === path) {
+    state.activeTab = state.openTabs[state.openTabs.length - 1] || null;
+    if (state.activeTab) setActiveTab(state.activeTab);
+    else {
+      document.getElementById('codeArea').value = '';
+      document.getElementById('code-placeholder').style.display = 'block';
+      renderTabs();
+      updateFooter();
+    }
+  } else renderTabs();
+}
+
+function highlightActiveFile(path) {
+  document.querySelectorAll('.tree-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.path === path);
+  });
+}
+
+function updateFooter() {
+  const path = state.activeTab || 'untitled';
+  const name = path.split('/').pop();
+  const ext = name.split('.').pop().toLowerCase();
+  const langMap = { js:'JavaScript',ts:'TypeScript',jsx:'React JSX',tsx:'React TSX',py:'Python',html:'HTML',css:'CSS',scss:'SCSS',json:'JSON',md:'Markdown',sh:'Shell',yml:'YAML',yaml:'YAML',go:'Go',rs:'Rust',java:'Java',rb:'Ruby',php:'PHP',c:'C',cpp:'C++',sql:'SQL' };
+  const lang = langMap[ext] || ext.toUpperCase() || 'plaintext';
+  document.getElementById('file-lang').textContent = lang;
+  document.getElementById('file-name-footer').textContent = name;
+  const bytes = new Blob([document.getElementById('codeArea').value]).size;
+  document.getElementById('file-size-footer').textContent = bytes > 1024 ? (bytes/1024).toFixed(1) + ' KB' : bytes + ' B';
+}
+
+function createNewFile() {
+  const name = prompt('File name (e.g. index.js):');
+  if (!name) return;
+  const path = name;
+  if (!state.openTabs.includes(path)) state.openTabs.push(path);
+  localStorage.setItem('devforge_file_' + path, '');
+  state.files.push({ path, type: 'blob' });
+  setActiveTab(path, '');
+  renderFileTree(state.files);
+  toast('Created ' + name, 'success');
+}
+
+function createNewFolder() {
+  toast('Create files with folder/ prefix (e.g. src/index.js)', 'info');
+}
+
+// ── CODE EDITOR ────────────────────────────────────────
+function onCodeInput() {
+  const ta = document.getElementById('codeArea');
+  const val = ta.value;
+  document.getElementById('code-placeholder').style.display = val ? 'none' : 'block';
+  updateLineNums();
+  updateFooter();
+  if (state.activeTab) {
+    state.dirtyTabs.add(state.activeTab);
+    localStorage.setItem('devforge_file_' + state.activeTab, val);
+    renderTabs();
+  }
+}
+
+function updateLineNums() {
+  const ta = document.getElementById('codeArea');
+  const lines = (ta.value || '').split('\n').length;
+  let html = '';
+  for (let i = 1; i <= Math.max(lines, 1); i++) html += i + '\n';
+  document.getElementById('line-nums').textContent = html;
+}
+
+// Ensure the line numbers scroll simultaneously with the textarea
+function syncScroll() {
+  const ta = document.getElementById('codeArea');
+  document.getElementById('line-nums').scrollTop = ta.scrollTop;
+}
+
+function handleTabKey(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = document.getElementById('codeArea');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    if (start === end) {
+      ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + 2;
+    } else {
+      const lines = ta.value.substring(start, end).split('\n');
+      const indented = lines.map(l => (e.shiftKey ? l.replace(/^  /, '') : '  ' + l)).join('\n');
+      ta.value = ta.value.substring(0, start) + indented + ta.value.substring(end);
+    }
+    onCodeInput();
+  }
+}
+
+function updateCursor() {
+  const ta = document.getElementById('codeArea');
+  const txt = ta.value.substring(0, ta.selectionStart);
+  const lines = txt.split('\n');
+  const ln = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  document.getElementById('cursor-pos').textContent = `Ln ${ln}, Col ${col}`;
+}
+
+function saveFile() {
+  if (!state.activeTab) { toast('No file to save', 'error'); return; }
+  state.dirtyTabs.delete(state.activeTab);
+  renderTabs();
+  toast('Saved locally', 'success');
+}
+
+function copyCode() {
+  const code = document.getElementById('codeArea').value;
+  if (!code) { toast('Nothing to copy', 'error'); return; }
+  navigator.clipboard.writeText(code).then(() => toast('Copied to clipboard', 'success'));
+}
+
+function downloadFile() {
+  const code = document.getElementById('codeArea').value;
+  const name = (state.activeTab || 'untitled').split('/').pop();
+  const blob = new Blob([code], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  toast('Downloaded ' + name, 'success');
+}
+
+function formatCode() {
+  const ta = document.getElementById('codeArea');
+  let code = ta.value;
+  const path = state.activeTab || '';
+  if (path.endsWith('.json')) {
+    try { code = JSON.stringify(JSON.parse(code), null, 2); ta.value = code; onCodeInput(); toast('Formatted JSON', 'success'); return; }
+    catch(e) { toast('Invalid JSON', 'error'); return; }
+  }
+  toast('Use "Ask AI" → format request for full formatting', 'info');
+}
+
+// ── DIFF VIEW ─────────────────────────────────────────
+let showingDiff = false;
+let originalContent = {};
+
+function toggleDiff() {
+  showingDiff = !showingDiff;
+  const codeWrap = document.getElementById('code-wrap');
+  const lineNums = document.getElementById('line-nums');
+  const diffView = document.getElementById('diff-view');
+  document.getElementById('btn-diff').classList.toggle('active-tool', showingDiff);
+
+  if (showingDiff) {
+    const path = state.activeTab;
+    if (!path) { toast('Open a file first', 'error'); showingDiff = false; document.getElementById('btn-diff').classList.remove('active-tool'); return; }
+    const current = document.getElementById('codeArea').value;
+    const original = originalContent[path] || current;
+    renderDiff(original, current);
+    codeWrap.style.display = 'none';
+    lineNums.style.display = 'none';
+    diffView.classList.add('active');
+  } else {
+    codeWrap.style.display = '';
+    lineNums.style.display = '';
+    diffView.classList.remove('active');
+  }
+}
+
+function renderDiff(original, current) {
+  const dv = document.getElementById('diff-view');
+  const oldLines = original.split('\n');
+  const newLines = current.split('\n');
+  let html = `<div class="diff-header"><span>Changes</span>
+    <span class="diff-legend"><span class="dd" style="background:var(--green)"></span>Added</span>
+    <span class="diff-legend"><span class="dd" style="background:var(--red)"></span>Removed</span>
+  </div><div class="diff-content">`;
+
+  let maxLen = Math.max(oldLines.length, newLines.length);
+  for (let i = 0; i < maxLen; i++) {
+    const o = oldLines[i];
+    const n = newLines[i];
+    if (o === n) {
+      html += `<div class="diff-line ctx"><span class="ln">${i+1}</span><span class="lc">${esc(n || '')}</span></div>`;
+    } else {
+      if (o !== undefined) html += `<div class="diff-line del"><span class="ln">-</span><span class="lc">- ${esc(o)}</span></div>`;
+      if (n !== undefined) html += `<div class="diff-line add"><span class="ln">+</span><span class="lc">+ ${esc(n)}</span></div>`;
+    }
+  }
+  html += '</div>';
+  dv.innerHTML = html;
+}
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── COMMIT MODAL ──────────────────────────────────────
+let modalCallback = null;
+
+function openCommitModal() {
+  if (!state.activeTab) { toast('No file to commit', 'error'); return; }
+  document.getElementById('modal-title').textContent = 'Commit Changes';
+  document.getElementById('modal-desc').textContent = `Committing: ${state.activeTab}`;
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal-input').placeholder = 'feat: describe your changes…';
+  document.getElementById('modal-confirm').textContent = 'Commit';
+  modalCallback = commitFile;
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
+}
+
+function showBranchModal() {
+  document.getElementById('modal-title').textContent = 'Switch / Create Branch';
+  document.getElementById('modal-desc').textContent = `Current branch: ${state.branch}`;
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal-input').placeholder = 'branch-name';
+  document.getElementById('modal-confirm').textContent = 'Switch';
+  modalCallback = switchBranch;
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+}
+
+document.getElementById('modal-confirm').onclick = () => { if (modalCallback) modalCallback(); };
+document.getElementById('modal-overlay').onclick = (e) => { if (e.target === document.getElementById('modal-overlay')) closeModal(); };
+
+async function commitFile() {
+  const msg = document.getElementById('modal-input').value.trim();
+  if (!msg) { toast('Enter a commit message', 'error'); return; }
+  if (!state.token) { toast('GitHub token required for commits', 'error'); closeModal(); return; }
+  if (!state.repo) { toast('No repo loaded', 'error'); closeModal(); return; }
+
+  closeModal();
+  startProgress();
+  try {
+    const { owner, repo } = state.repo;
+    const path = state.activeTab;
+    const content = document.getElementById('codeArea').value;
+    const headers = { Authorization: `token ${state.token}`, 'Content-Type': 'application/json' };
+
+    let sha;
+    try {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${state.branch}`, { headers });
+      if (r.ok) { const d = await r.json(); sha = d.sha; }
+    } catch {}
+
+    const body = { message: msg, content: btoa(unescape(encodeURIComponent(content))), branch: state.branch };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'PUT', headers, body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+
+    state.dirtyTabs.delete(path);
+    renderTabs();
+    finishProgress();
+    toast('Committed successfully!', 'success');
+  } catch(e) {
+    finishProgress();
+    toast('Commit failed: ' + e.message, 'error');
+  }
+}
+
+function switchBranch() {
+  const br = document.getElementById('modal-input').value.trim();
+  if (!br) return;
+  state.branch = br;
+  state.branchSetManually = true;
+  document.getElementById('current-branch').textContent = br;
+  closeModal();
+  toast('Switched branch targeting to: ' + br, 'info');
+  if (state.repo) loadRepo();
+}
+
+// ── MODEL SELECTOR ────────────────────────────────────
+function toggleModelSelector() {
+  document.getElementById('model-selector').classList.toggle('open');
+}
+
+function selectModel(el) {
+  document.querySelectorAll('.model-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.model = el.dataset.model;
+  state.modelName = el.dataset.name;
+  document.getElementById('model-badge').textContent = state.modelName + ' ▾';
+  document.getElementById('model-selector').classList.remove('open');
+  toast('Selected: ' + el.querySelector('.mo-name').textContent, 'info');
+}
+
+function toggleApiKeySection() {
+  document.getElementById('api-key-section').classList.toggle('open');
+}
+
+function confirmAndSaveKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) {
+    toast('Please enter a valid Google Gemini API key first', 'error');
+    return;
+  }
+  saveApiKey(key);
+  toast('API Key saved successfully!', 'success');
+  document.getElementById('api-key-section').classList.remove('open');
+}
+
+function saveApiKey(val) {
+  state.apiKey = val;
+  localStorage.setItem('devforge_apikey', val);
+  setStatus(val ? 'ok' : '');
+}
+
+async function testApiKey() {
+  if (!state.apiKey) { toast('Enter an API key first', 'error'); return; }
+  startProgress();
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }] })
+    });
+    if (res.ok) { setStatus('ok'); toast('API key valid ✓', 'success'); }
+    else { setStatus('err'); toast('API key invalid', 'error'); }
+  } catch(e) { setStatus('err'); toast('Connection error', 'error'); }
+  finishProgress();
+}
+
+// ── CHAT ──────────────────────────────────────────────
+function chatInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+function autogrow(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+
+function insertPrompt(text) {
+  document.getElementById('chatInput').value = text;
+  document.getElementById('chatInput').focus();
+  autogrow(document.getElementById('chatInput'));
+}
+
+function sendCodeToChat() {
+  const code = document.getElementById('codeArea').value;
+  if (!code) { toast('No code in editor', 'error'); return; }
+  const path = state.activeTab || 'code';
+  showChatContext(path);
+  document.getElementById('chatInput').value = 'Analyze this code and describe what it does.';
+  document.getElementById('chatInput').focus();
+}
+
+function requestCodeFix() {
+  sendCodeToChat();
+  document.getElementById('chatInput').value = 'Find and fix all bugs, issues, and code quality problems in this code. Provide the fixed version.';
+}
+
+function generateDocs() {
+  sendCodeToChat();
+  document.getElementById('chatInput').value = 'Add comprehensive comments and docstrings to this code. Explain parameters and logic.';
+}
+
+function showChatContext(path) {
+  const ctx = document.getElementById('chat-context');
+  const name = path.split('/').pop();
+  ctx.className = 'active';
+  ctx.innerHTML = `<div class="ctx-label">Context attached:</div>
+    <div class="ctx-file">${fileIcon(name)} ${name}<button onclick="clearContext()">✕</button></div>`;
+  state.chatContext = path;
+  if (state.chatOpen === false) toggleChat();
+}
+
+function clearContext() {
+  document.getElementById('chat-context').className = '';
+  state.chatContext = null;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (state.model === 'free-sandbox') {
+    input.value = '';
+    input.style.height = 'auto';
+
+    addMsg('user', text);
+    const typingEl = addTyping();
+    document.getElementById('sendBtn').disabled = true;
+
+    // Simulate slight processing overhead for real-time visualization
+    setTimeout(() => {
+      typingEl.remove();
+      const editorCode = document.getElementById('codeArea').value;
+      const fileName = state.activeTab || 'untitled';
+      
+      const reply = OfflineAI.generate(text, editorCode, fileName);
+
+      state.chatHistory.push({ role: 'user', content: text });
+      state.chatHistory.push({ role: 'assistant', content: reply });
+      addMsg('ai', reply);
+      setStatus('ok');
+      document.getElementById('sendBtn').disabled = false;
+    }, 600);
+    return;
+  }
+
+  if (!state.apiKey) {
+    toast('Configure your API key in the chat panel', 'error');
+    document.getElementById('api-key-section').classList.add('open');
+    document.getElementById('model-selector').classList.add('open');
+    return;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  addMsg('user', text);
+
+  let contextCode = '';
+  if (state.chatContext) {
+    contextCode = localStorage.getItem('devforge_file_' + state.chatContext) || '';
+  } else {
+    const editorCode = document.getElementById('codeArea').value;
+    if (editorCode && editorCode.length > 10) contextCode = editorCode;
+  }
+
+  const systemPrompt = `You are DevForge AI — an expert software engineer assistant built into a code editor. You help developers write, debug, review, and understand code.
+
+When providing code fixes or improvements:
+- Always show the complete corrected code
+- Use proper markdown code blocks with language hints
+- Be concise but thorough
+- Explain what you changed and why
+
+Current file: ${state.activeTab || 'untitled'}
+${contextCode ? `\n\nCode in editor:\n\`\`\`\n${contextCode.substring(0, 8000)}\n\`\`\`` : ''}`;
+
+  state.chatHistory.push({ role: 'user', content: text });
+
+  const typingEl = addTyping();
+  document.getElementById('sendBtn').disabled = true;
+
+  try {
+    const geminiContents = state.chatHistory.slice(-20).map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    const bodyData = {
+      contents: geminiContents,
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        maxOutputTokens: 4096,
+        temperature: 0.2
+      }
+    };
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${state.model}:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bodyData)
+    });
+
+    typingEl.remove();
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    
+    let reply = '';
+    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      reply = data.candidates[0].content.parts.map(p => p.text || '').join('');
+    } else {
+      throw new Error('Invalid response structure returned from Gemini API.');
+    }
+
+    state.chatHistory.push({ role: 'assistant', content: reply });
+    addMsg('ai', reply);
+    setStatus('ok');
+  } catch(e) {
+    typingEl.remove();
+    setStatus('err');
+    addMsg('ai', `❌ Error: ${e.message}. Check your API key and connection configuration.`);
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function addMsg(role, text) {
+  const log = document.getElementById('chat-messages');
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = formatMsgText(text);
+  msg.appendChild(bubble);
+
+  const meta = document.createElement('span');
+  meta.className = 'msg-meta';
+  meta.textContent = role === 'user' ? 'You' : state.modelName;
+  msg.appendChild(meta);
+
+  if (role === 'ai') {
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+    actions.innerHTML = `
+      <button class="msg-act" onclick="copyMsgText(this)">Copy</button>
+      <button class="msg-act" onclick="applyCodeFromMsg(this)">Apply to Editor</button>`;
+    actions.dataset.text = text;
+    msg.appendChild(actions);
+  }
+
+  log.appendChild(msg);
+  log.scrollTop = log.scrollHeight;
+  return msg;
+}
+
+function formatMsgText(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code class="lang-${lang}">${code.trim()}</code></pre>`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function addTyping() {
+  const log = document.getElementById('chat-messages');
+  const msg = document.createElement('div');
+  msg.className = 'msg ai';
+  msg.innerHTML = `<div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  log.appendChild(msg);
+  log.scrollTop = log.scrollHeight;
+  return msg;
+}
+
+function copyMsgText(btn) {
+  const text = btn.closest('.msg-actions').dataset.text;
+  navigator.clipboard.writeText(text).then(() => toast('Copied', 'success'));
+}
+
+function applyCodeFromMsg(btn) {
+  const text = btn.closest('.msg-actions').dataset.text;
+  const match = text.match(/```(?:\w+)?\n?([\s\S]+?)```/);
+  if (match) {
+    const code = match[1];
+    document.getElementById('codeArea').value = code;
+    onCodeInput();
+    if (state.activeTab) {
+      if (!originalContent[state.activeTab]) originalContent[state.activeTab] = localStorage.getItem('devforge_file_' + state.activeTab) || '';
+      state.dirtyTabs.add(state.activeTab);
+      renderTabs();
+    }
+    toast('Code applied to editor', 'success');
+  } else {
+    toast('No code block found in message', 'error');
+  }
+}
+
+function clearChat() {
+  state.chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = '';
+  addMsg('ai', 'Chat cleared. How can I help you?');
+}
+
+// ── SEARCH ────────────────────────────────────────────
+let searchIdx = -1;
+
+function toggleSearch() {
+  const o = document.getElementById('search-overlay');
+  if (o.classList.contains('open')) closeSearch();
+  else {
+    o.classList.add('open');
+    document.getElementById('search-input').focus();
+    document.getElementById('search-results').innerHTML = '';
+    searchIdx = -1;
+  }
+}
+
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+  document.getElementById('search-input').value = '';
+}
+
+function doSearch(query) {
+  const res = document.getElementById('search-results');
+  searchIdx = -1;
+  if (!query.trim()) { res.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  let html = '';
+  let count = 0;
+  if (state.files.length > 0) {
+    state.files.forEach(f => {
+      if (f.path.toLowerCase().includes(q) && count < 8) {
+        const name = f.path.split('/').pop();
+        html += `<div class="sr-item" onclick="openFile('${f.path}');closeSearch()">
+          ${fileIcon(name)} <span class="sr-file">${name}</span>
+          <span style="flex:1;font-size:11px;color:var(--text3);padding-left:8px;overflow:hidden;text-overflow:ellipsis">${f.path}</span>
+        </div>`;
+        count++;
+      }
+    });
+  }
+  state.openTabs.forEach(path => {
+    const content = localStorage.getItem('devforge_file_' + path) || '';
+    const lines = content.split('\n');
+    lines.forEach((line, i) => {
+      if (line.toLowerCase().includes(q) && count < 12) {
+        const name = path.split('/').pop();
+        html += `<div class="sr-item" onclick="openFile('${path}');closeSearch()">
+          ${fileIcon(name)} <span class="sr-file">${name}</span>
+          <span style="flex:1;font-size:11px;color:var(--text3);padding:0 8px;overflow:hidden;text-overflow:ellipsis">${esc(line.trim())}</span>
+          <span class="sr-line">:${i+1}</span>
+        </div>`;
+        count++;
+      }
+    });
+  });
+  res.innerHTML = html || '<div class="sr-empty">No results</div>';
+}
+
+function searchKey(e) {
+  if (e.key === 'Escape') closeSearch();
+  if (e.key === 'Enter') {
+    const first = document.querySelector('.sr-item');
+    if (first) first.click();
+  }
+}
+
+// ── SERVICE WORKER ────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const sw = `self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;
+  const blob = new Blob([sw], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+document.getElementById('modal-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); if (modalCallback) modalCallback(); }
+});
+</script>
+</body>
+</html>
